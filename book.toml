@@ -1,0 +1,16 @@
+[book]
+title = "Pumpkin Plugin Knowledge Base"
+authors = ["Jakub Palacky"]
+language = "en"
+description = "A general Knowledge base for plugins built for the Pumpkin Minecraft server software"
+
+[rust]
+edition = "2024"
+
+[output.html]
+git-repository-url = "https://github.com/vyPal/PumpkinBook"
+git-repository-icon = "fab-github"
+
+[output.html.playground]
+runnable = false
+

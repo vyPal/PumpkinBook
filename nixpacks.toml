@@ -1,0 +1,14 @@
+providers = []
+
+[phases.setup]
+nixPkgs = ["mdbook"]
+
+[phases.build]
+cmds = ["mdbook build"]
+
+[phases.cache]
+paths = ["target"]
+
+[start]
+cmd = "nginx -g 'daemon off;'"
+runImage = "nixpkgs#nginx"
