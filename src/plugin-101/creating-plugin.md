@@ -7,7 +7,7 @@
 
 Since we are going to be compiling our plugin to Web Assembly (WASM for short), we need to make sure that the rust compiler knows how to compile to the `wasm32-wasip2` target[^wasi].
 
-[^wasi]: The Pumpkin Plugin API currently uses v2 of the Web Assembly System Interface (WASI). This version has many limitation that we will talk about later in the knowledge base. At the time of writing, WASI version 3 (`wasip3`) has been approved by the WASM Foundation, but does not yet have mainstream compilation support. Once the rust compiler has support for this target, Pumpkin will switch to using `wasip3`
+[^wasi]: The Pumpkin Plugin API currently uses v2 of the Web Assembly System Interface (WASI). This version has many limitation that we will talk about later in the knowledge base. The server host has recently started linking WASI version 3 (`wasip3`) bindings alongside `wasip2` in preparation for a future migration, but the plugin WIT contract itself doesn't use `wasip3` yet, so this has no effect on what you can write today. Keep targeting `wasm32-wasip2` until the knowledge base says otherwise.
 
 To install the toolchain, simply run this command in your terminal (requires [rustup](https://rustup.rs/) to be installed):
 

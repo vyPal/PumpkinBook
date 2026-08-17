@@ -211,4 +211,4 @@ This method is used with [Pumpkin's task scheduler](./task-scheduler.md), and is
 
 ### `handle_ipc_message(sender, message) -> result<message>`
 
-This method is called by the host when another plugin sends yours a message directly, letting plugins talk to each other without going through events or commands. `sender` identifies which plugin the message came from, and `message` is a raw byte payload, its structure is entirely up to whatever the sending plugin and yours agree on. Return the (possibly empty) response to send back, or an error string if the message couldn't be handled. A full chapter on plugin-to-plugin IPC is planned for later.
+Same method as described under "Primary plugin methods" above, listed here for parity with the other raw WIT-level exports.
