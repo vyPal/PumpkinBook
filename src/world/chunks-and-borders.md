@@ -16,7 +16,7 @@ Same shape as the equivalent `World` methods, but every position is chunk-relati
 
 ### `.get_biome(pos)`
 
-Same `Biome` type as `World::get_biome`, and the same limitation applies, see the [world handle](./world-and-time.md#blocks) chapter for details.
+Same `Biome` type as `World::get_biome`, see the [world handle](./world-and-time.md#blocks) chapter for where to import it from.
 
 ### `.get_block_entity(pos)`
 

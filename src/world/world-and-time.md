@@ -26,8 +26,8 @@ Reads or overrides the 0-15 light levels at a position. These are the raw lighti
 
 Returns the `Biome` at a position.
 
-> [!WARNING]
-> `pumpkin-plugin-api` doesn't currently export the `Biome` type publicly, so you can store, compare (`==`), or pass along the value this returns, but you can't name the type to write your own `match` arms against specific biomes, or construct a `Biome` value yourself for anything that expects one as input.
+> [!NOTE]
+> `Biome` isn't re-exported from the crate root or an obvious `biomes` module, the only public path to it is `pumpkin_plugin_api::worldgen::PluginBiome` (an alias defined inside the world-generation module, of all places, since that's the other place a `Biome` value is needed). Import it from there if you want to `match` on what `get_biome` returns.
 
 ### `.get_sea_level()` / `.get_min_y()`
 

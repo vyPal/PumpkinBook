@@ -31,6 +31,11 @@
 - [Entities: attributes & AI](./world/entities-attributes-and-ai.md)
 - [Chunks & world borders](./world/chunks-and-borders.md)
 - [Display entities](./world/display-entities.md)
+- [Block entities](./world/block-entities.md)
+
+# World Generation
+
+- [Custom chunk generation](./worldgen/custom-world-generation.md)
 
 # Items, Recipes & Enchantments
 
@@ -67,6 +72,11 @@
 
 - [Text components](./text/text-components.md)
 - [Localization](./text/localization.md)
+
+# Advanced
+
+- [Vanilla data reference](./advanced/vanilla-data-reference.md)
+- [Raw packets](./advanced/raw-packets.md)
 
 # Code snippets
 
