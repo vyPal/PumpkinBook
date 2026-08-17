@@ -1,6 +1,6 @@
 # Command executors
 
-Alongside event handlers, the other thing you'll typically register in `on_load()` (as mentioned in [Basic plugin logic](./plugin-logic.md)) is commands. This chapter covers just enough to get a basic command up and running — building the full command tree, with arguments, sub-commands and suggestions, is a big enough topic that it gets its own chapter later on.
+Alongside event handlers, the other thing you'll typically register in `on_load()` (as mentioned in [Basic plugin logic](./plugin-logic.md)) is commands. This chapter covers just enough to get a basic command up and running. Building the full command tree, with arguments and sub-commands, is a big enough topic that it gets [its own section](../commands/command-tree.md).
 
 ## Building a command
 
@@ -9,7 +9,7 @@ A `Command` is created with a primary name (plus any aliases) and a description:
 ```rust
 use pumpkin_plugin_api::command::Command;
 
-let command = Command::new(vec!["hello".into()], "Greets whoever runs it".into());
+let command = Command::new(&["hello".to_string()], "Greets whoever runs it");
 ```
 
 The first entry in the name list is the command's primary name, any further entries are aliases.
@@ -33,7 +33,7 @@ impl CommandHandler for HelloCommand {
 }
 ```
 
-`sender` is whoever ran the command (a player, the console, a command block, or RCON), `args` gives you access to any arguments the command tree consumed. Since our command doesn't declare any arguments yet, `args` is unused here — that's covered in the dedicated command tree chapter.
+`sender` is whoever ran the command (a player, the console, a command block, or RCON), `args` gives you access to any arguments the command tree consumed. Since our command doesn't declare any arguments yet, `args` is unused here, see [Command executors](../commands/executors.md#reading-arguments) for how to read them once you have some.
 
 `execute()` attaches the handler and returns the command again, so it chains naturally:
 
@@ -63,10 +63,12 @@ fn on_load(&mut self, context: Context) -> Result<()> {
 
 `register_command()` treats the permission argument as an opaque string — it doesn't check it against anything. You could point your command at a permission node belonging to another plugin, or an internal `minecraft:` one, and the server won't stop you. Namespacing your own permissions under your plugin's name, as above, is just a convention worth following to avoid stepping on other plugins' nodes.
 
+The one thing it does do is fill the namespace in for you when you leave it out: a permission string with no colon in it gets your plugin's name prefixed automatically, so passing `"use"` here would land on the same `"HelloPlugin:use"` node as spelling it out.
+
 That convention **is** enforced the moment you explicitly define one of your own permission nodes with `context.register_permission()`: the part before the colon must exactly match your plugin's `name` field from `PluginMetadata`, character for character, or registration fails.
 
 > [!WARNING]
-> Registering a command does **not** register its permission node. If `"HelloPlugin:use"` was never given to `context.register_permission()`, the node simply doesn't exist — and an unrecognized permission denies everyone, including server operators. Without the call below, nobody would be able to run `/hello` at all.
+> Registering a command does **not** register its permission node. If `"HelloPlugin:use"` was never given to `context.register_permission()`, the node simply doesn't exist — and an unrecognized permission denies every player, including server operators. It doesn't deny the console, though, which passes every permission check before the node is ever looked up. So skipping the call below wouldn't make `/hello` look broken, it would make it look console-only. See [Command permissions](../commands/permissions.md#unregistered-nodes).
 
 ```rust
 use pumpkin_plugin_api::permission::{Permission, PermissionDefault};
@@ -81,7 +83,7 @@ context.register_permission(&Permission {
 })?;
 ```
 
-`PermissionDefault::Allow` grants the permission to everyone by default; `PermissionDefault::Op(level)` restricts it to operators of at least the given level, and `PermissionDefault::Deny` grants it to nobody until it's explicitly assigned. Managing permissions in more detail (wildcards, child nodes, checking them outside of commands) is covered together with the rest of the command tree in a later chapter.
+`PermissionDefault::Allow` grants the permission to everyone by default; `PermissionDefault::Op(level)` restricts it to operators of at least the given level, and `PermissionDefault::Deny` grants it to nobody until it's explicitly assigned. Managing permissions in more detail (wildcards, child nodes, checking them inside an executor, granting them at runtime) is covered in [Command permissions](../commands/permissions.md).
 
 ## Overriding commands
 

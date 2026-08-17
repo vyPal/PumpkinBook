@@ -10,6 +10,13 @@
 - [Data persistence](./plugin-101/data-persistence.md)
 - [Task scheduler](./plugin-101/task-scheduler.md)
 
+# Commands
+
+- [Building a command tree](./commands/command-tree.md)
+- [Argument types](./commands/argument-types.md)
+- [Command executors](./commands/executors.md)
+- [Command permissions](./commands/permissions.md)
+
 # Code snippets
 
 - [Rust](./snippets/rust.md)
