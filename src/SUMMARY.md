@@ -17,6 +17,29 @@
 - [Command executors](./commands/executors.md)
 - [Command permissions](./commands/permissions.md)
 
+# Players
+
+- [Identity, state & permissions](./players/player-basics.md)
+- [Health, effects & stats](./players/player-status.md)
+- [Inventory & environment](./players/player-inventory-and-environment.md)
+
+# World & Entities
+
+- [The world handle](./world/world-and-time.md)
+- [Entities: identity & movement](./world/entities-basics.md)
+
+# Items, Recipes & Enchantments
+
+- [Item stacks](./items/item-stack.md)
+
+# Persistent Data
+
+- [The PersistentDataHolder API](./persistent-data/persistent-data.md)
+
+# Text & Localization
+
+- [Text components](./text/text-components.md)
+
 # Code snippets
 
 - [Rust](./snippets/rust.md)
