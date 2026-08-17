@@ -176,7 +176,7 @@ impl Plugin for ExamplePlugin {
 }
 ```
 
-A full chapter on plugin-to-plugin IPC, including how to send messages to other plugins, is planned for later.
+See [Sending and receiving IPC messages](../ipc/inter-plugin-communication.md) for the full picture, including how to send messages to other plugins.
 
 ## Other methods
 
