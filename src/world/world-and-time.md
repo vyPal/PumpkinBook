@@ -12,7 +12,11 @@
 
 ### `.get_block_state_id(pos)` / `.get_block_state(pos)` / `.set_block_state(pos, state, update_flags)`
 
-`get_block_state_id` returns the raw numeric block state id at a `BlockPos`, `get_block_state` returns the fuller `BlockState` record (id, luminance, opacity, hardness, and more). `set_block_state` takes a numeric state id back and a `BlockFlags` flag set controlling side effects: `notify_neighbors`, `notify_listeners`, `force_state` (apply even if it's already that state), `skip_drops`.
+`get_block_state_id` returns the raw numeric block state id at a `BlockPos`, `get_block_state` returns the fuller `BlockState` record (id, luminance, opacity, hardness, and more, now also carrying `block_id`, `block_name`, and `properties: Vec<(String, String)>`, the state's property key-value pairs like `facing=north`). `set_block_state` takes a numeric state id back and a `BlockFlags` flag set controlling side effects: `notify_neighbors`, `notify_listeners`, `force_state` (apply even if it's already that state), `skip_drops`.
+
+### `.get_block(pos)` / `.get_block_id(pos)` / `.set_block(pos, block, update_flags)` / `.set_block_by_id(pos, block_id, update_flags)` / `.set_block_by_name(pos, name, update_flags)`
+
+Alternatives to the state-id-based methods above that work with the higher-level `Block` type (a static block *definition*, see [Block registry](#block-registry) below) instead of a numeric state id, `set_block`/`set_block_by_id`/`set_block_by_name` all place the block's *default* state. `set_block_by_name` accepts a namespaced string (`"minecraft:oak_log"`) and returns `false` if the name wasn't recognized instead of placing anything.
 
 ### `.get_top_block_y(x, z)` / `.get_motion_blocking_height(x, z)`
 
@@ -33,11 +37,37 @@ Returns the `Biome` at a position.
 
 The world's configured sea level and the lowest buildable Y coordinate.
 
+## Block registry
+
+Static definitions for every registered block type, as free functions (`pumpkin_plugin_api::world::get_block_by_id(...)`, and so on), not scoped to any particular `World` instance. A `Block` is `{ id, name, hardness, blast_resistance, map_color, slipperiness, velocity_multiplier, jump_velocity_multiplier, item_id, default_state_id, state_ids, is_solid, is_air, is_flammable, flammable }`, `flammable` is `Option<Flammable> { spread_chance, burn_chance }`. This is a static *type* definition (one entry per block, `"minecraft:oak_log"`), distinct from `BlockState` above (one entry per placed *variant* of a block, including its properties).
+
+- `get_block_by_id(id)` / `get_block_by_name(name)` — look up one `Block` by numeric id or namespaced name.
+- `get_all_blocks()` / `get_all_block_names()` — every registered `Block`, or just their names.
+- `get_block_count()` / `get_block_state_count()` — total registered block types and total block states.
+- `get_states_for_block(block)` / `get_states_for_block_id(block_id)` — every `BlockState` belonging to a block type.
+- `get_state_ids_for_block_id(block_id)` — same, but just the raw numeric state ids.
+- `get_block_properties(state_id)` — the property key-value pairs for one state id, without fetching the whole `BlockState`.
+- `get_block_from_state_id(state_id)` / `get_block_from_state(state)` — the parent `Block` a state belongs to.
+- `get_default_state_from_block(block)` / `get_default_state_from_block_id(block_id)` — the default (no extra properties) `BlockState` for a block type.
+- `get_block_state_by_id(state_id)` — the full `BlockState` record for a numeric state id.
+
+```rust
+use pumpkin_plugin_api::world;
+
+if let Some(stone) = world::get_block_by_name("minecraft:stone") {
+  println!("stone hardness: {}", stone.hardness);
+}
+```
+
 ## Chunks & the border
 
 ### `.get_chunk(x, z)` / `.get_world_border()`
 
 Returns a `Chunk` handle for the given chunk coordinates (not block coordinates, divide by 16), or the world's `WorldBorder`. Both get their own methods in [Chunks & world borders](./chunks-and-borders.md).
+
+### `.get_spawn_location()`
+
+Returns the world's configured shared spawn point as a `WorldSpawnLocation { pos, yaw, pitch }`.
 
 ## Time & weather
 
@@ -68,6 +98,10 @@ world.set_game_rule(GameRule::KeepInventory, GameRuleValue::Bool(true));
 > [!WARNING]
 > Like `Biome`, the `Sound` enum isn't currently exported publicly by `pumpkin-plugin-api`, even though `SoundCategory` (a `world`-module type) is. Since `play_sound` requires a `Sound` value to call at all, there's currently no supported way to call this method from a plugin.
 
+### `.play_custom_sound(sound_name, category, pos, volume, pitch)`
+
+The workaround: takes a plain resource-pack sound identifier string instead of the unexported `Sound` enum, so unlike `play_sound` above, this one is fully callable today. See the same contrast on the per-player version in [Inventory & environment](../players/player-inventory-and-environment.md#audio--particles).
+
 ### `.spawn_particle(particle, pos, offset, max_speed, count)`
 
 Unlike sounds, `Particle` is exported and usable. Spawns `count` particles of the given `Particle` kind at `pos`, randomized within `offset` on each axis, with `max_speed` controlling how fast they scatter.
@@ -97,6 +131,10 @@ Spawns an `EntityType` at a position and returns the new `Entity`, or lists ever
 ### `.ray_trace_blocks(start, end)`
 
 A block-only raycast between two positions (no entities), returns the position of the first block hit, or `None` if the ray reaches `end` unobstructed.
+
+### `.ray_trace_block(start, end, include_fluids)` / `.ray_trace_entity(start, end)` / `.ray_trace_entities(start, end)`
+
+Richer versions of the raycast above. `ray_trace_block` returns the fuller `Option<RayTraceBlockResult> { pos, face, hit_pos }` (a `BlockPos`, the face hit, and the exact hit coordinates) instead of just a raw `Position`, and takes an `include_fluids` flag. `ray_trace_entity` finds the closest entity hit between the two points as `Option<RayTraceEntityResult> { entity, hit_pos, distance }`, `ray_trace_entities` returns every entity hit along the ray instead of just the closest. Same result types as the entity-side and player-side raycast APIs, see [Entities: identity & movement](./entities-basics.md#raycasting).
 
 ## Block entities
 

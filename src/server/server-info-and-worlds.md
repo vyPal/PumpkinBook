@@ -58,6 +58,14 @@ Saves every online player, their advancements, and every loaded world to disk im
 
 `broadcast` sends a plain string to every player's chat on the whole server (not just one world, contrast with `World::broadcast_system_message`, which takes a full `TextComponent` and is scoped to one world). `broadcast_tab_list_header_footer` sets the tab list header/footer for everyone at once.
 
+### `.delete_message_by_signature(signature)` / `.delete_message_by_id(signature_id)`
+
+Removes a previously-sent signed chat message from every player's chat window, either by its full 256-byte signature (`list<u8>`) or by the shorter signature cache id, the same mechanism vanilla uses when a moderator deletes a chat message. `Player` has the same two methods scoped to a single player's chat window, see [Identity, state & permissions](../players/player-basics.md).
+
+### `.set_server_links(links)`
+
+Sets the custom links shown in every connected client's Esc pause menu (Java 1.21+). A `ServerLink` is `{ label, url }`, where `label` is either `ServerLinkLabel::Known(KnownServerLink)` (a built-in recognized icon/label, `BugReport`, `CommunityGuidelines`, `Support`, `Status`, `Feedback`, `Community`, `Website`, `Forums`, `News`, `Announcements`) or `ServerLinkLabel::Custom(text_component)` for your own label. `Player.set_server_links` sets them for just one player instead.
+
 ## Running commands programmatically
 
 ### `.execute_command(command, sender)`
@@ -84,6 +92,7 @@ These return handles to server-wide subsystems, each covered in its own chapter:
 - `.get_recipe_manager()`, see [Custom recipes](../items/recipes.md)
 - `.get_op_manager()`, `.get_ban_manager()`, `.get_whitelist_manager()`, see [Ops, bans & whitelist](./ops-bans-and-whitelist.md)
 - `.get_enchantment_manager()`, `.get_enchantment(id)`, `.get_all_enchantment_ids()`, see [Custom enchantments](../items/enchantments.md)
+- `.get_datapack_manager()`, see [Datapacks](./datapacks.md)
 
 ### `.get_advancement(id)` / `.get_all_advancement_ids()`
 

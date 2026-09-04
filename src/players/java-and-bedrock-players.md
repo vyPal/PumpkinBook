@@ -42,6 +42,14 @@ Sends a `JavaResourcePack` (`id`, `url`, `hash`, `forced`, an optional prompt me
 
 A `JavaKickOptions` (`reason` as a `TextComponent`, `log_to_console`, a `teardown_policy` controlling how gracefully the connection closes).
 
+### `.send_game_event(event, value)`
+
+Sends a raw clientbound GameEvent packet, a `ClientGameEvent` (`NoRespawnBlockAvailable`, `BeginRaining`, `EndRaining`, `ChangeGameMode`, `WinGame`, `DemoEvent`, `ArrowHitPlayer`, `RainLevelChange`, `ThunderLevelChange`, `PlayPufferfishStringSound`, `PlayElderGuardianMobAppearance`, `EnabledRespawnScreen`, `LimitedCrafting`, `StartWaitingChunks`) plus a float `value` whose meaning depends on the event (e.g. the 0.0-1.0 level for `RainLevelChange`). Mostly useful for protocol-level effects that don't have a dedicated method elsewhere on `Player`.
+
+### `.send_entity_status(entity_id, status)`
+
+Sends an entity status/animation packet for an arbitrary entity id, an `EntityStatus` (dozens of variants, `Poof`, `Teleport`, `VillagerHappy`, `TotemUse`-adjacent effects, and more, see `entity-statuses.wit` in the [WIT source](https://github.com/Pumpkin-MC/pumpkin-plugin-wit/blob/master/v0.1/entity-statuses.wit) for the full list). This is the same visual/sound trigger vanilla uses for one-shot mob animations, sent directly rather than through whatever normally causes it.
+
 ## Bedrock-specific
 
 ### `.get_version()` / `.get_settings()`

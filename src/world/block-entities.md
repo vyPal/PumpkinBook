@@ -48,6 +48,10 @@ Most storage-holding block entities (chests, barrels, furnaces, hoppers, dropper
 
 Standard inventory access, `Option<ItemStack>` per slot, same shape as `Player`'s inventory methods.
 
+### `.get_inventory()`
+
+Returns the container's contents as a generic `Inventory` handle, the same type used for player inventories and GUIs, see [Inventory & environment](../players/player-inventory-and-environment.md#inventory-handles). Same underlying slots as the methods above, useful when you're writing code generic over any `Inventory`-shaped thing.
+
 ## Common types, in full
 
 A handful of the most frequently-used block entities, everything else follows the same shape (see the table below).

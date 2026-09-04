@@ -20,6 +20,30 @@ The basic constructor. Wraps a plain string with no formatting.
 
 Builds a component from a translation key instead of literal text, the client resolves `key` against its own language file (or one your plugin registered, see the [Localization](./localization.md) chapter) and substitutes the `TextComponent`s in `with` into the key's placeholders, in order. Useful when you want a message that's already localized in the client's own language rather than hardcoding English.
 
+### `TextComponent::translate_cross(java_key, bedrock_key, with)`
+
+Same idea, but with separate translation keys for Java and Bedrock clients, since the two editions' language files don't always share key names. The host picks whichever key matches the receiving client's platform.
+
+### `TextComponent::entity_names(selector, separator)`
+
+Builds a component that resolves a target selector (e.g. `"@a"`, `"@e[type=zombie]"`) client-side into the matched entities' names, joined by `separator` (defaults to a comma if `None`). The same mechanic vanilla uses for `@s`-style output in scoreboard/team text.
+
+### `TextComponent::keybind(keybind)`
+
+Builds a component showing the client's currently bound key for a keybind identifier (e.g. `"key.jump"`), rendered as whatever key that player has it bound to, not a hardcoded key name.
+
+### `TextComponent::custom(namespace, key, locale, with)`
+
+A lower-level translation constructor for a custom-registered translation, see [Localization](./localization.md) for how a plugin registers its own translation keys.
+
+### `TextComponent::from_legacy_string(input)` / `TextComponent::from_legacy_string_with_code(input, code_symbol)`
+
+Parses an old-style formatted string (section-sign color codes, `"§cHello"`) into a `TextComponent`. The `_with_code` variant lets you use a different marker character than `§`, `'&'` is the common choice for strings coming from a config file, since `§` isn't easy to type.
+
+### `TextComponent::from_json(json)` / `.to_json()`
+
+Parses a standard Minecraft JSON text component string into a `TextComponent` (`from_json` returns a `Result<TextComponent, String>`), or serializes one back out to that same JSON format. Useful for round-tripping through config files or interop with tools that already speak vanilla's text JSON.
+
 ## Composing text
 
 ### `.add_text(text)`
@@ -52,6 +76,10 @@ Reads back the plain-text content of the component (no styling, no children's te
 
 Serializes the component to the raw byte format the server uses internally to send it over the network. Plugin authors building normal messages never need this, it exists for the rare case of assembling a packet by hand, see [Raw packets](../advanced/raw-packets.md).
 
+### `.to_pretty_console()`
+
+Renders the component (styling included, as ANSI escape codes) for printing to a terminal, useful if you're logging a `TextComponent` and want the colors to actually show up in the console rather than being silently dropped.
+
 ## Styling
 
 Each of these sets one property on the component and returns nothing, call them as separate statements on the same `let` binding.
@@ -59,6 +87,20 @@ Each of these sets one property on the component and returns nothing, call them 
 ### `.color_named(color)` / `.color_rgb(color)`
 
 Sets the text color, either to one of the 16 named Minecraft colors (`NamedColor::Gold`, `NamedColor::DarkRed`, and so on) or to an exact `RgbColor { r, g, b }`. Setting one overwrites whichever color was set before, including by the other method, there's no way to have both.
+
+### `.gradient_named(colors)` / `.gradient(colors)` / `.rainbow()`
+
+Applies a per-character color gradient across the component's text instead of one flat color, `gradient_named` takes a list of `NamedColor`, `gradient` a list of exact `RgbColor`, `rainbow()` is a shortcut for the classic rainbow gradient. Like the plain color setters, these overwrite whatever color/gradient was set before.
+
+```rust
+use pumpkin_plugin_api::common::RgbColor;
+
+let title = TextComponent::text("EPIC LOOT");
+title.gradient(vec![
+  RgbColor { r: 255, g: 0, b: 128 },
+  RgbColor { r: 128, g: 0, b: 255 },
+]);
+```
 
 ### `.bold(value)` / `.italic(value)` / `.underlined(value)` / `.strikethrough(value)` / `.obfuscated(value)`
 
@@ -89,6 +131,14 @@ Runs `command` as if the player typed and sent it themselves, including the lead
 ### `.click_suggest_command(command)`
 
 Populates the player's chat box with `command`, same as `insertion`, but triggered by a click instead of shift-click.
+
+### `.click_open_file(path)`
+
+Opens a local file path in the player's client-side file handler when clicked. Client-side only, has no effect related to anything on the server's filesystem.
+
+### `.click_change_page(page)`
+
+For a component shown inside a written book, flips the book to `page` when clicked. Has no effect outside a book UI.
 
 ### `.click_copy_to_clipboard(text)`
 

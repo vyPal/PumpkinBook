@@ -105,6 +105,10 @@ impl Plugin for ExamplePlugin {
 }
 ```
 
+### `context.get_marketplace_metadata()`
+
+Returns `Some(MarketplaceMetadata)` if the running plugin binary is signed and registered on a Pumpkin plugin marketplace, or `None` for an unsigned/self-built plugin. The record carries `marketplace_url`, `plugin_id`, `plugin_name`, `version`, `dev_id`, `dev_name`, `is_paid`, `user_id` (the buyer's id, `0` for free plugins), an optional `license_key`, and `issued_at` (an ISO-8601 timestamp). A paid plugin can use this to verify it's running under a legitimate license for the current server before enabling premium functionality, rather than trusting an unverifiable config flag.
+
 ### `on_unload(context) -> result<>`
 
 This method is similar to `on_load()`, except that it runs right before the plugin is unloaded (plugins can be unloaded for various reasons, like the server stopping, a crash, or just an admin running the unload command). The primary use of this method is to finalize and close out any open data sources (DBs, config/cache files, etc.), but can be used for anything the plugin author wants. No matter the result returned by this method, the plugin will be unloaded internally in the server, so when this method is called, it guarantees that no other methods of this plugin will be called later.

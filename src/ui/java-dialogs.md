@@ -70,13 +70,13 @@ let dialog = Dialog {
 };
 ```
 
-A `CustomClick` button fires a `CustomClickActionEvent` when pressed, carrying `player`, `id` (matching what you set on the button), and an optional `payload`, that's how you find out which button in a `MultiAction` dialog got clicked.
+A `CustomClick` button fires a `DialogClickActionEvent` when pressed, carrying `player`, `id` (matching what you set on the button), an optional `payload`, and `cancelled`, that's how you find out which button in a `MultiAction` dialog got clicked.
 
 ```rust
-use pumpkin_plugin_api::events::{CustomClickActionEvent, EventData};
+use pumpkin_plugin_api::events::{DialogClickActionEvent, EventData};
 
-impl EventHandler<CustomClickActionEvent> for MenuHandler {
-  fn handle(&self, _server: Server, event: EventData<CustomClickActionEvent>) -> EventData<CustomClickActionEvent> {
+impl EventHandler<DialogClickActionEvent> for MenuHandler {
+  fn handle(&self, _server: Server, event: EventData<DialogClickActionEvent>) -> EventData<DialogClickActionEvent> {
     if event.id == "my_plugin:tp_spawn" {
       // teleport event.player to spawn
     }
@@ -84,6 +84,9 @@ impl EventHandler<CustomClickActionEvent> for MenuHandler {
   }
 }
 ```
+
+> [!NOTE]
+> This event was renamed from `CustomClickActionEvent` in earlier versions of this crate. Two more dialog events exist alongside it: `DialogShowEvent` (`player`, `dialog`, `cancelled`), fired whenever a dialog is about to be shown to a player (cancel it to suppress the dialog), and `DialogClearEvent` (`player`, `cancelled`), fired when a dialog is cleared.
 
 ## Links
 

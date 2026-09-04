@@ -35,6 +35,30 @@ sword.add_enchantment(Enchantment::FireAspect, 2);
 
 The same shape, but for enchantments a plugin registered itself (see [Custom enchantments](./enchantments.md)), addressed by their string id rather than the `Enchantment` enum.
 
+## Attribute modifiers
+
+### `.get_attribute_modifiers()` / `.add_attribute_modifier(modifier)` / `.remove_attribute_modifiers(attribute)` / `.clear_attribute_modifiers()`
+
+Attribute modifiers attached to the item itself (the same mechanic vanilla uses for a sword's `+3 Attack Damage` or boots with `+10% Movement Speed`), independent of any modifier applied to whatever entity is wearing or holding it, see [Entities: attributes & AI](../world/entities-attributes-and-ai.md) for the entity-side equivalent. An `ItemAttributeModifier` is `{ attribute, modifier, slot }`, where `modifier` is the usual `AttributeModifier { id, amount, operation }` and `slot` is an `AttributeModifierSlot` (`Any`, `MainHand`, `OffHand`, `Hand`, `Feet`, `Legs`, `Chest`, `Head`, `Armor`, `Body`) restricting which equipment slot the modifier applies in.
+
+```rust
+use pumpkin_plugin_api::{
+  Attribute, AttributeModifier, AttributeModifierSlot, ItemAttributeModifier, ModifierOperation,
+};
+
+sword.add_attribute_modifier(ItemAttributeModifier {
+  attribute: Attribute::AttackDamage,
+  modifier: AttributeModifier {
+    id: "my_plugin:bonus_damage".to_string(),
+    amount: 3.0,
+    operation: ModifierOperation::Add,
+  },
+  slot: AttributeModifierSlot::MainHand,
+});
+```
+
+`remove_attribute_modifiers` clears every modifier for a given `Attribute` at once (there's no per-id removal here, unlike the entity-side API), `clear_attribute_modifiers` clears all of them regardless of attribute.
+
 ## Lore & display name
 
 ### `.get_lore()` / `.set_lore(lore)` / `.add_lore(line)`

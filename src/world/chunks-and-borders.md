@@ -14,6 +14,10 @@ The chunk's own coordinates, handy when you're holding a `Chunk` without remembe
 
 Same shape as the equivalent `World` methods, but every position is chunk-relative, `x` and `z` must be in `[0, 15]`. Unlike `World::set_block_state`, there's no `update_flags` parameter here.
 
+### `.get_block(pos)` / `.set_block(pos, block)` / `.set_block_by_id(pos, block_id)`
+
+Chunk-relative versions of `World`'s `Block`-based accessors, see [Block registry](./world-and-time.md#block-registry). Same `[0, 15]` coordinate constraint as above.
+
 ### `.get_biome(pos)`
 
 Same `Biome` type as `World::get_biome`, see the [world handle](./world-and-time.md#blocks) chapter for where to import it from.
@@ -34,21 +38,33 @@ Namespaced NBT storage attached to the chunk itself, see [Persistent Data](../pe
 
 Get one from `world.get_world_border()`.
 
-### `.get_center_x()` / `.get_center_z()` / `.set_center(x, z)`
+### `.get_center_x()` / `.get_center_z()` / `.set_center(x, z)` / `.get_center()`
 
-The border's center point.
+The border's center point. `get_center()` is a newer convenience returning both coordinates as one `Position` instead of two separate calls.
 
-### `.get_diameter()` / `.set_diameter(diameter, speed)`
+### `.get_diameter()` / `.set_diameter(diameter, speed)` / `.get_size()` / `.set_size(size)` / `.set_size_transition(new_size, time_seconds)`
 
-Current diameter in blocks, and a setter that can optionally animate the change, `speed` is how many ticks the transition should take to reach the new diameter, `None` changes it instantly.
+Current diameter in blocks, and a setter that can optionally animate the change, `speed` is how many ticks the transition should take to reach the new diameter, `None` changes it instantly. `get_size`/`set_size` are newer aliases for `get_diameter`/an instant `set_diameter`, `set_size_transition` is an alias for the animated form of `set_diameter` that takes a duration in seconds instead of ticks, generally the more ergonomic one to reach for.
 
-### `.get_warning_distance()` / `.set_warning_distance(distance)` / `.get_warning_delay()` / `.set_warning_delay(delay)`
+### `.get_target_diameter()` / `.get_target_speed()`
 
-The visual warning effect players see as they approach the border: `warning_distance` is how many blocks out it starts showing, `warning_delay` is how many seconds before a shrinking border reaches a player that the warning starts (only relevant while the border is actively moving).
+While a `set_diameter`/`set_size_transition` animation is in progress, these read back the diameter it's transitioning toward and the remaining ticks, so you can check on or display an in-progress shrink/grow without tracking it yourself.
 
-### `.contains(x, z)`
+### `.get_warning_distance()` / `.set_warning_distance(distance)` / `.get_warning_delay()` / `.set_warning_delay(delay)` / `.get_warning_time()` / `.set_warning_time(time)`
 
-Checks whether a coordinate is within the border, useful for gating spawns, teleports, or explosions to the playable area.
+The visual warning effect players see as they approach the border: `warning_distance` is how many blocks out it starts showing, `warning_delay` is how many seconds before a shrinking border reaches a player that the warning starts (only relevant while the border is actively moving). `get_warning_time`/`set_warning_time` are newer aliases for `get_warning_delay`/`set_warning_delay`.
+
+### Border damage
+
+`.get_damage_buffer()` / `.set_damage_buffer(buffer)` and `.get_damage_amount()` / `.set_damage_amount(damage)` are new, previously unconfigurable settings: `damage_buffer` is how many blocks outside the border a player can stand before taking damage, `damage_amount` is how much damage per block per second they take once past that buffer, matching vanilla's `/worldborder damage buffer`/`/worldborder damage amount`.
+
+### `.contains(x, z)` / `.contains_pos(pos)`
+
+Checks whether a coordinate is within the border, useful for gating spawns, teleports, or explosions to the playable area. `contains_pos` is the same check taking a `Position` directly instead of two floats.
+
+### `.reset()`
+
+Resets every world border setting (center, diameter, warning distance/delay, damage buffer/amount) back to vanilla defaults.
 
 ## Putting it together
 

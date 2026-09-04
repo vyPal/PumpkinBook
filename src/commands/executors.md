@@ -199,6 +199,44 @@ Your executor runs while the server is waiting on the command, the same way a bl
 
 If a command kicks off something genuinely slow, like a network request or a big file read, acknowledge it immediately, hand the work to the [task scheduler](../plugin-101/task-scheduler.md), and message the player again when it's done.
 
+## Server-side suggestions
+
+By default, tab completion for an argument comes from the client's own guesses based on the `ArgumentType` (a `Players` argument suggests online player names, and so on). For an argument where you want to control the suggestion list yourself, e.g. a warp name, a registered item id, anything your plugin owns, attach a `CommandSuggestionHandler` to the node instead:
+
+```rust
+use pumpkin_plugin_api::{
+  command::{CommandSender, SuggestionRequest, CommandSuggestion, CommandSuggestions},
+  commands::CommandSuggestionHandler,
+  Server,
+};
+
+struct WarpSuggestions {
+  warps: Arc<Warps>,
+}
+
+impl CommandSuggestionHandler for WarpSuggestions {
+  fn suggest(&self, _sender: CommandSender, _server: Server, request: SuggestionRequest) -> CommandSuggestions {
+    let prefix = &request.remaining;
+    let values = self.warps.0.read().unwrap().keys()
+      .filter(|name| name.starts_with(prefix.as_str()))
+      .map(|name| CommandSuggestion { value: name.clone(), tooltip: None })
+      .collect();
+
+    CommandSuggestions {
+      start: request.start,
+      length: request.input.len() as u32 - request.start,
+      values,
+    }
+  }
+}
+
+CommandNode::argument(NAME_ARG, &ArgumentType::String(StringType::SingleWord))
+  .suggest(WarpSuggestions { warps: Arc::clone(&warps) })
+  .execute(WarpCommand { warps: Arc::clone(&warps) });
+```
+
+`request` is a `SuggestionRequest { input, cursor, start, remaining }`, the raw command line typed so far, the cursor position, where the current argument token starts, and the remaining text of that token. Return a `CommandSuggestions { start, length, values }` describing which span of the input your suggestions replace, `values` is a list of `CommandSuggestion { value, tooltip }`. Attaching `.suggest()` advertises the node to Java clients with `minecraft:ask_server`, which is what makes the client ask the server for completions instead of guessing locally.
+
 ## Commands you didn't register
 
 Two events let you see commands going past, which is handy for logging, or for blocking a command from another plugin:

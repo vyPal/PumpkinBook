@@ -26,6 +26,10 @@ use pumpkin_plugin_api::ItemStack;
 menu.set_item(13, ItemStack::new("minecraft:diamond", 1));
 ```
 
+### `.get_inventory()`
+
+Returns the GUI's contents as a generic `Inventory` handle, the same type used for player inventories and containers (see [Inventory & environment](../players/player-inventory-and-environment.md#inventory-handles)). Useful if you're writing code that works against any `Inventory`-shaped thing rather than `Gui` specifically, `set_item`/`get_item` above are the more direct way to work with a GUI on its own.
+
 ## Interaction permissions
 
 ### `.set_allow_grab_items(allow)` / `.get_allow_grab_items()` / `.set_allow_put_items(allow)` / `.get_allow_put_items()`

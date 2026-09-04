@@ -47,6 +47,7 @@
 
 - [Server info & worlds](./server/server-info-and-worlds.md)
 - [Ops, bans & whitelist](./server/ops-bans-and-whitelist.md)
+- [Datapacks](./server/datapacks.md)
 
 # Scoreboard & Teams
 

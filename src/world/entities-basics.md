@@ -1,6 +1,23 @@
 # Entities: identity & movement
 
-`Entity` covers every non-player thing that moves through a world: mobs, dropped items, projectiles, minecarts, and so on, players included, `player.as_entity()` gives you the same kind of handle (see [Identity, state & permissions](../players/player-basics.md)). You get an `Entity` from `world.spawn_entity(...)`, `world.get_entities()`, or from event data. This page covers identity, movement, naming, state flags, health, and passengers. Attributes, equipment, targeting, and AI goals get their own chapter, [Entities: attributes & AI](./entities-attributes-and-ai.md).
+`Entity` covers every non-player thing that moves through a world: mobs, dropped items, projectiles, minecarts, and so on, players included, `player.as_entity()` gives you the same kind of handle (see [Identity, state & permissions](../players/player-basics.md)). You get an `Entity` from `world.spawn_entity(...)`, `world.get_entities()`, or from event data. This page covers identity, movement, naming, state flags, and passengers. Health, attributes, equipment, targeting, and AI goals live on two narrower handles you cast to, `LivingEntity` and `Mob`, covered in [Entities: attributes & AI](./entities-attributes-and-ai.md).
+
+## Living entities & mobs
+
+### `.as_living()` / `.is_living()` / `.as_mob()` / `.is_mob()`
+
+Not every `Entity` has health or AI, a dropped item or a minecart doesn't. `as_living()` returns `Some(LivingEntity)` if this entity has health, attributes, and equipment (mobs, players, armor stands), `as_mob()` returns `Some(Mob)` if it's additionally an AI-driven mob (armor stands are living but not mobs). Both return `None` otherwise, and `is_living()`/`is_mob()` are the boolean-only versions when you don't need the handle itself.
+
+```rust
+use pumpkin_plugin_api::{world::Entity, TextComponent};
+
+fn announce_hit(target: &Entity) {
+  if let Some(living) = target.as_living() {
+    let msg = format!("Hit for {} damage!", living.get_health());
+    living.send_system_message(TextComponent::text(&msg));
+  }
+}
+```
 
 ## Identity
 
@@ -58,25 +75,18 @@ The entity's current `EntityPose` (`Standing`, `Sleeping`, `Swimming`, `Crouchin
 
 The entity's hitbox dimensions.
 
-## Health & damage
-
-### `.get_health()` / `.set_health(health)` / `.get_max_health()` / `.damage(amount, damage_type)` / `.is_dead()`
-
-Same shape as the player health methods from [Health, effects & stats](../players/player-status.md), works on any entity, not just players. There's no `heal()` shortcut here like there is on `Player`, add to `get_health()` yourself and clamp to `get_max_health()`.
-
-### `.get_absorption()` / `.set_absorption(amount)`
-
-Absorption (extra) hearts, same concept as the player version.
-
 ## Other physical state
 
-`get_age` / `set_age` (ticks since spawn, some mobs use this for baby/adult growth), `get_fall_distance` / `set_fall_distance`, `get_ticks_lived` / `set_ticks_lived`, `get_portal_cooldown` / `set_portal_cooldown`, `get_remaining_air` / `set_remaining_air` / `get_max_air` (drowning), `get_eye_height` / `get_eye_position`, `get_bounding_box`, `is_in_water` / `is_in_lava`.
+`get_fall_distance` / `set_fall_distance`, `get_ticks_lived` / `set_ticks_lived`, `get_portal_cooldown` / `set_portal_cooldown`, `get_remaining_air` / `set_remaining_air` / `get_max_air` (drowning), `get_eye_height` / `get_eye_position`, `get_bounding_box`, `is_in_water` / `is_in_lava`.
 
-## Messaging
+> [!NOTE]
+> Health, absorption, age, and `send_system_message` moved off the base `Entity` onto `LivingEntity` as of the entity-model split (see [Living entities & mobs](#living-entities--mobs) above). Cast with `.as_living()` first if you need any of those.
 
-### `.send_system_message(message)`
+## Raycasting
 
-Sends a `TextComponent` to this entity, only meaningful for entities that are actually players under the hood, calling it on a non-player entity has no effect.
+### `.raycast(max_distance, fluid_handling)` / `.ray_trace_block(max_distance, include_fluids)` / `.ray_trace_entity(max_distance)` / `.get_target_entity(max_distance)`
+
+Casts a ray from this entity's eye position in its facing direction, up to `max_distance` blocks. `raycast`/`ray_trace_block` take a `fluid_handling`/`include_fluids` flag that lets the ray stop on fluids as if they were solid; `raycast` returns the older `RaycastResult { pos, face }` (block position and `BlockDirection` face), while `ray_trace_block` returns the richer `RayTraceBlockResult { pos, face, hit_pos }` with the exact hit coordinates. `ray_trace_entity` finds the closest entity along the ray and returns `RayTraceEntityResult { entity, hit_pos, distance }`; `get_target_entity` is the shortcut when you just want the `Entity` itself.
 
 ## Nearby entities & passengers
 
