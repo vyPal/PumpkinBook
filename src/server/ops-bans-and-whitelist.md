@@ -4,50 +4,50 @@ Three global managers reached through `Server`: `.get_op_manager()`, `.get_ban_m
 
 ## Operators
 
-### `.is_op(id)` / `.get_op(id)` / `.get_permission_level(id)`
+### `.is_op(id)` / `.get_op(id)` / `.get_permission_level(id)` { data-since=0.1 }
 
 Checks op status, fetches the full `OpEntry` (`uuid`, `name`, `level`, `bypasses_player_limit`) if the player is op, or just their effective `PermissionLevel` (`Zero` if they're not op at all).
 
-### `.op_player(name, id, level, bypasses_player_limit)` / `.deop_player(id)`
+### `.op_player(name, id, level, bypasses_player_limit)` / `.deop_player(id)` { data-since=0.1 }
 
 Grants or revokes operator status. `bypasses_player_limit` lets an op join even when the server is already at its player cap. `deop_player` returns `true` if the player was actually op beforehand.
 
-### `.list_ops()`
+### `.list_ops()` { data-since=0.1 }
 
 Every `OpEntry` currently in `ops.json`.
 
-> [!WARNING]
-> `PermissionLvl`'s deserialization (the type backing `ops.json`'s `level` field) is missing the match arm for value `1` (`Moderator`). An `ops.json` entry with `"level": 1` fails to load with an "Invalid value for OpLevel: 1" error, even though `PermissionLevel::One` is a real, usable value everywhere else in the plugin API (including `op_player`'s own `level` parameter). Avoid granting op level `1` through `op_player` until this is fixed, or the entry may fail to load back from disk on the next server restart.
+> [!NOTE]
+> Operator level `1` (`Moderator`) used to be rejected when `ops.json` was loaded, with an "Invalid value for OpLevel: 1" error, because the level's deserializer had no case for it. That was fixed on 2026-09-08. On a server built before that date, avoid `op_player(..., PermissionLevel::One, ...)`, the entry would fail to load back from disk on the next restart. Since 2026-09-27, `ops.json` also writes vanilla's `bypassesPlayerLimit` field name (the old `bypasses_player_limit` is still read), and an entry without a `level` counts as level `0`.
 
 ## Bans
 
-### `.is_player_banned(id)` / `.get_player_ban(id)`
+### `.is_player_banned(id)` / `.get_player_ban(id)` { data-since=0.1 }
 
 Checks or fetches the `BannedPlayerEntry` (`uuid`, `name`, `created`, `source`, `expires`, `reason`) for a player.
 
-### `.ban_player(name, id, options)` / `.unban_player(id)`
+### `.ban_player(name, id, options)` / `.unban_player(id)` { data-since=0.1 }
 
 Same `BanPlayerOptions` shape as `Player::ban()` from [Identity, state & permissions](../players/player-basics.md), but works on offline players too since it's addressed by UUID instead of an online `Player` handle.
 
-### `.list_player_bans()`
+### `.list_player_bans()` { data-since=0.1 }
 
 Every currently active player ban.
 
-### `.is_ip_banned(ip)` / `.get_ip_ban(ip)` / `.ban_ip(ip, options)` / `.unban_ip(ip)` / `.list_ip_bans()`
+### `.is_ip_banned(ip)` / `.get_ip_ban(ip)` / `.ban_ip(ip, options)` / `.unban_ip(ip)` / `.list_ip_bans()` { data-since=0.1 }
 
 The same shape again, for IP-based bans instead of player bans.
 
 ## Whitelist
 
-### `.is_enabled()` / `.set_enabled(enabled)`
+### `.is_enabled()` / `.set_enabled(enabled)` { data-since=0.1 }
 
 Reads or toggles whether the whitelist is active. Enabling it with server-side whitelist enforcement on will kick any currently-online, non-whitelisted players.
 
-### `.is_whitelisted(id)` / `.add_player(name, id)` / `.remove_player(id)`
+### `.is_whitelisted(id)` / `.add_player(name, id)` / `.remove_player(id)` { data-since=0.1 }
 
 Checks, adds, or removes a whitelist entry by UUID. `add_player` returns `true` if the player was newly added (wasn't already whitelisted).
 
-### `.list_entries()`
+### `.list_entries()` { data-since=0.1 }
 
 Every `WhitelistEntry` (`uuid`, `name`) currently whitelisted.
 

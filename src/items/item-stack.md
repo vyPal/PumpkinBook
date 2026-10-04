@@ -4,7 +4,7 @@
 
 ## Creating one
 
-### `ItemStack::new(registry_key, count)`
+### `ItemStack::new(registry_key, count)` { data-since=0.1 }
 
 The constructor takes a registry key (`"minecraft:diamond_sword"`) and a stack count.
 
@@ -14,13 +14,13 @@ use pumpkin_plugin_api::ItemStack;
 let sword = ItemStack::new("minecraft:diamond_sword", 1);
 ```
 
-### `.get_registry_key()` / `.get_count()` / `.set_count(count)` / `.get_max_count()`
+### `.get_registry_key()` / `.get_count()` / `.set_count(count)` / `.get_max_count()` { data-since=0.1 }
 
 The item's registry key, its current stack size, a setter for the stack size, and the maximum stack size for this item type (`1` for tools and weapons, `64` for most blocks and materials, some items cap lower).
 
 ## Enchantments
 
-### `.get_enchantments()` / `.add_enchantment(enchantment, level)` / `.remove_enchantment(enchantment)`
+### `.get_enchantments()` / `.add_enchantment(enchantment, level)` / `.remove_enchantment(enchantment)` { data-since=0.1 }
 
 Vanilla enchantments, addressed by the `Enchantment` enum. `get_enchantments()` returns a list of `EnchantmentValue { enchantment, level }`.
 
@@ -31,13 +31,13 @@ sword.add_enchantment(Enchantment::Sharpness, 5);
 sword.add_enchantment(Enchantment::FireAspect, 2);
 ```
 
-### `.get_custom_enchantments()` / `.add_custom_enchantment(id, level)` / `.remove_custom_enchantment(id)` / `.get_custom_enchantment_level(id)` / `.has_custom_enchantment(id)`
+### `.get_custom_enchantments()` / `.add_custom_enchantment(id, level)` / `.remove_custom_enchantment(id)` / `.get_custom_enchantment_level(id)` / `.has_custom_enchantment(id)` { data-since=0.1 }
 
 The same shape, but for enchantments a plugin registered itself (see [Custom enchantments](./enchantments.md)), addressed by their string id rather than the `Enchantment` enum.
 
 ## Attribute modifiers
 
-### `.get_attribute_modifiers()` / `.add_attribute_modifier(modifier)` / `.remove_attribute_modifiers(attribute)` / `.clear_attribute_modifiers()`
+### `.get_attribute_modifiers()` / `.add_attribute_modifier(modifier)` / `.remove_attribute_modifiers(attribute)` / `.clear_attribute_modifiers()` { data-since=0.1 }
 
 Attribute modifiers attached to the item itself (the same mechanic vanilla uses for a sword's `+3 Attack Damage` or boots with `+10% Movement Speed`), independent of any modifier applied to whatever entity is wearing or holding it, see [Entities: attributes & AI](../world/entities-attributes-and-ai.md) for the entity-side equivalent. An `ItemAttributeModifier` is `{ attribute, modifier, slot }`, where `modifier` is the usual `AttributeModifier { id, amount, operation }` and `slot` is an `AttributeModifierSlot` (`Any`, `MainHand`, `OffHand`, `Hand`, `Feet`, `Legs`, `Chest`, `Head`, `Armor`, `Body`) restricting which equipment slot the modifier applies in.
 
@@ -46,7 +46,7 @@ use pumpkin_plugin_api::{
   Attribute, AttributeModifier, AttributeModifierSlot, ItemAttributeModifier, ModifierOperation,
 };
 
-sword.add_attribute_modifier(ItemAttributeModifier {
+sword.add_attribute_modifier(&ItemAttributeModifier {
   attribute: Attribute::AttackDamage,
   modifier: AttributeModifier {
     id: "my_plugin:bonus_damage".to_string(),
@@ -61,32 +61,32 @@ sword.add_attribute_modifier(ItemAttributeModifier {
 
 ## Lore & display name
 
-### `.get_lore()` / `.set_lore(lore)` / `.add_lore(line)`
+### `.get_lore()` / `.set_lore(lore)` / `.add_lore(line)` { data-since=0.1 }
 
 The lore is a list of `TextComponent`s, one per line, shown below the item's name in its tooltip. `set_lore` replaces the whole list, `add_lore` appends a single line.
 
-### `.get_custom_name()` / `.set_custom_name(name)`
+### `.get_custom_name()` / `.set_custom_name(name)` { data-since=0.1 }
 
 An optional `TextComponent` overriding the item's displayed name (the same mechanic as an anvil rename, but done in code). Pass `None` to clear a custom name and fall back to the item's default display name.
 
 ```rust
 use pumpkin_plugin_api::{common::NamedColor, text::TextComponent};
 
-let name = TextComponent::text("Excalibur");
-name.color_named(NamedColor::Aqua);
-name.bold(true);
+let name = TextComponent::text("Excalibur")
+  .color_named(NamedColor::Aqua)
+  .bold(true);
 sword.set_custom_name(Some(name));
 ```
 
 ## Custom & persistent data
 
-### `.set_custom_data(namespace, key, value)` / `.get_custom_data(namespace, key)` / `.remove_custom_data(namespace, key)` / `.has_custom_data(namespace, key)`
+### `.set_custom_data(namespace, key, value)` / `.get_custom_data(namespace, key)` / `.remove_custom_data(namespace, key)` / `.has_custom_data(namespace, key)` { data-since=0.1 }
 
 Raw namespaced NBT storage attached to this specific stack, persisted with it. See [Persistent Data](../persistent-data/persistent-data.md) for the typed `PersistentDataHolder` wrapper built on top of these same calls, it's implemented for `ItemStack` and is almost always the nicer way to use this.
 
 ## Data components
 
-### `.get_components()` / `.set_component(component, value)` / `.remove_component(component)`
+### `.get_components()` / `.set_component(component, value)` / `.remove_component(component)` { data-since=0.1 }
 
 The lowest-level way to read or write an item's data components (Minecraft's post-1.20.5 item data model, `DataComponent::Unbreakable`, `DataComponent::MaxDamage`, `DataComponent::Rarity`, and so on), as raw serialized bytes rather than a strongly-typed value. Most of what you'd reach for this to do (enchantments, lore, custom name, custom data) already has a dedicated typed method above, use this only for a component that doesn't.
 
@@ -103,8 +103,7 @@ use pumpkin_plugin_api::{
 fn starter_sword() -> ItemStack {
   let sword = ItemStack::new("minecraft:iron_sword", 1);
 
-  let name = TextComponent::text("Starter Blade");
-  name.color_named(NamedColor::Yellow);
+  let name = TextComponent::text("Starter Blade").color_named(NamedColor::Yellow);
   sword.set_custom_name(Some(name));
 
   sword.add_lore(TextComponent::text("A trusty first weapon."));

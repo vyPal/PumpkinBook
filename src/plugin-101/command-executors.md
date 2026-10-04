@@ -12,9 +12,9 @@ use pumpkin_plugin_api::command::Command;
 let command = Command::new(&["hello".to_string()], "Greets whoever runs it");
 ```
 
-The first entry in the name list is the command's primary name, any further entries are aliases.
+The first entry in the name list is the command's primary name, any further entries are aliases. Names are lowercased when the command is registered.
 
-### `command.execute(handler)`
+### `command.execute(handler)` { data-since=0.1 }
 
 To actually do something when the command runs, attach a handler that implements `CommandHandler`:
 
@@ -44,12 +44,12 @@ let command = Command::new(&["hello".into()], "Greets whoever runs it")
 
 ## Registering the command
 
-### `context.register_command(command, permission)`
+### `context.register_command(command, permission)` { data-since=0.1 }
 
 Like event handlers, commands are registered on the `Context` object inside `on_load()`. The second argument is the permission node required to run the command:
 
 ```rust
-fn on_load(&mut self, context: Context) -> Result<()> {
+fn on_load(&self, context: Context) -> Result<()> {
   let command = Command::new(&["hello".into()], "Greets whoever runs it")
     .execute(HelloCommand);
 
@@ -85,18 +85,21 @@ context.register_permission(&Permission {
 
 `PermissionDefault::Allow` grants the permission to everyone by default; `PermissionDefault::Op(level)` restricts it to operators of at least the given level, and `PermissionDefault::Deny` grants it to nobody until it's explicitly assigned. Managing permissions in more detail (wildcards, child nodes, checking them inside an executor, granting them at runtime) is covered in [Command permissions](../commands/permissions.md).
 
-## Overriding commands
+## Colliding with an existing command
 
-`register_command()` doesn't check whether a name is already taken — register one that collides with an existing command, and yours can end up running instead. Exactly how depends on which system the existing command came from.
+`register_command()` doesn't check whether a name is already taken. Built-in commands and plugin commands all live in the same command tree, and registering a name that already exists **merges** your command into the existing one instead of replacing it. The rules, which are the same whether the first registration came from the server or from another plugin:
 
-Built-ins like `/gamemode`, `/give`, `/effect`, and `/say` are registered through the exact same map plugins use, so a colliding registration simply replaces them outright, for every player — whichever one calls `register_command()` last wins, with no error or warning either way. The same applies if two plugins register the same name.
+- Command names are lowercased when they're registered, so `Warp` and `warp` are the same command.
+- New branches are added next to the existing ones. If you register a `/gamemode` that only has a `probe` literal under it, `/gamemode probe` becomes a working sub-command while `/gamemode survival` keeps running the built-in one. Same-named nodes merge recursively.
+- Where both registrations put an executor on the same node, yours wins. Registering a bare `/list` with an executor takes over what a plain `/list` does, but anything under it stays as it was.
+- **The first registration decides the permission for the whole command.** The permission requirement of an existing root node is kept, and the one you pass to your own `register_command()` is silently dropped. That includes the branches you added: a player who may run the original command can run your new sub-command too.
 
-Built-ins like `/kill`, `/op`, `/scoreboard`, and `/advancement` go through a separate, newer command system that's checked before plugin commands ever get a chance to run, so your registration can never directly replace theirs.
+> [!WARNING]
+> Because your permission string is ignored when you merge into a name someone else registered first, don't rely on it to protect a branch you add to a command you don't own. Check `sender.has_permission(...)` inside your executor instead, see [Checking permissions yourself](../commands/permissions.md#checking-permissions-yourself). Which registration comes first for two plugins depends on load order, so don't depend on that either.
 
-> [!NOTE]
-> That newer system still ends up indirectly shadowed, though: it reports "unknown command" — not "permission denied" — for a player who doesn't meet its own permission requirement, and the server treats that exactly like the command not existing there at all, falling through to check for a plugin's command with the same name. Since these built-ins are almost always gated to operators, this means a plugin can effectively take over `/kill` or `/op` for regular players, while operators still see the real thing. A command that's available to everyone by default, like `/help`, can never be shadowed this way, since it never fails its own permission check.
+Aliases are separate root entries that copy the primary command's permission requirement and executor and then redirect into the primary command's node, so anything merged into the primary node later (including by another plugin) shows up under the aliases too.
 
-Aliases are their own, independent registrations that point back at a primary name, rather than owning a copy of the command tree. So if a later registration only replaces a primary name and not the aliases that originally came with it, those aliases don't stop working — they just start running whatever command currently owns that primary name, which may no longer be the one they were originally registered alongside.
+When your plugin unloads, the commands it registered under their own names (and their aliases) are switched off and answer "unknown command" until a plugin registers them again, for example after a reload. Branches you merged into a command that someone else registered are not removed, so make sure your executors cope with being called while your plugin is gone, or avoid merging into other commands in the first place.
 
 ## Putting it together
 
@@ -132,7 +135,7 @@ impl Plugin for HelloPlugin {
     }
   }
 
-  fn on_load(&mut self, context: Context) -> Result<()> {
+  fn on_load(&self, context: Context) -> Result<()> {
     context.register_permission(&Permission {
       node: "HelloPlugin:use".into(),
       description: "Allows running /hello".into(),

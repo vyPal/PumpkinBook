@@ -11,7 +11,7 @@ Attach an executor to any node, and that executor runs when the player's input l
 
 ## The pieces
 
-### `Command::new(names, description)`
+### `Command::new(names, description)` { data-since=0.1 }
 
 The root of the tree. The first name is the command's primary name, everything after it is an alias:
 
@@ -29,9 +29,9 @@ That registers `/balance`, with `/bal` and `/money` pointing at it.
 Note the signature, it trips people up: the names are a **slice of `String`**, and the description is a plain `&str`. So `&["balance".to_string()]` rather than `vec!["balance".into()]`.
 
 > [!NOTE]
-> Aliases aren't copies of the tree, they're separate entries in the server's command registry that point back at the primary name. That has a consequence worth knowing about when several plugins fight over the same name, which is covered in [Overriding commands](../plugin-101/command-executors.md#overriding-commands).
+> Aliases aren't copies of the tree, they're separate root entries that redirect into the primary command's node (and copy its permission requirement and root executor). That matters when several registrations fight over the same name, which is covered in [Colliding with an existing command](../plugin-101/command-executors.md#colliding-with-an-existing-command).
 
-### `CommandNode::literal(name)`
+### `CommandNode::literal(name)` { data-since=0.1 }
 
 A fixed word:
 
@@ -41,7 +41,7 @@ use pumpkin_plugin_api::command::CommandNode;
 let start = CommandNode::literal("start");
 ```
 
-### `CommandNode::argument(name, type)`
+### `CommandNode::argument(name, type)` { data-since=0.1 }
 
 A value the player supplies. The `name` is not shown to the player as such, it's the **key you'll use to read the value back** inside your executor, so pick something you'll recognise:
 
@@ -55,20 +55,20 @@ The client does show the name in its tab-completion hint as `<players>`, so it's
 
 The second parameter decides what the argument accepts and what type you get back. There are a lot of them, and they have opinions, so they get their own page: [Argument types](./argument-types.md).
 
-### `parent.then(child)`
+### `parent.then(child)` { data-since=0.1 }
 
-Attaches a node one level below another. It works on both `Command` and `CommandNode`:
+Attaches a node one level below another. It works on both `Command` and `CommandNode`, and it hands the parent back so the calls chain:
 
 ```rust
-let uhc = Command::new(&["uhc".to_string()], "Control the UHC minigame");
-uhc.then(CommandNode::literal("start"));
-uhc.then(CommandNode::literal("status"));
+let uhc = Command::new(&["uhc".to_string()], "Control the UHC minigame")
+  .then(CommandNode::literal("start"))
+  .then(CommandNode::literal("status"));
 ```
 
 > [!WARNING]
 > `then()` **consumes** the child node. On the server side the node handle is taken out of the resource table and moved into the parent, so the variable you passed in is spent. You can't attach the same node to two parents, and you can't keep configuring it afterwards. If you need the same branch in two places, build it twice (a small `fn` that returns a fresh `CommandNode` is the usual way, see [Sharing branches](#sharing-branches) below).
 
-### `node.execute(handler)`
+### `node.execute(handler)` { data-since=0.1 }
 
 Attaches an executor, which is any type implementing `CommandHandler`. It works on `Command` and on `CommandNode`:
 
@@ -78,32 +78,18 @@ let status = CommandNode::literal("status").execute(StatusExecutor);
 
 Every `execute()` call registers its own handler, so a single tree can have as many executors as it has branches. Which one runs depends on where the player's input stopped.
 
-## The one ordering rule
+## Everything chains
 
-`execute()` and `then()` don't chain the same way, and this is the single most common thing to get stuck on when building a tree:
-
-- `execute()` takes the node **by value** and gives it back, so you can keep using the result.
-- `then()` only **borrows**, so you can chain more `then()` calls, but you can't chain an `execute()` onto the end of one.
-
-In practice: **build each branch with `execute()` first, then attach it with `then()`.**
+`then()`, `execute()` and `suggest()` all take the node **by value** and hand it back, on `Command` and `CommandNode` alike. A whole tree can be written as one expression, and the order you apply the calls in doesn't matter. If you want an executor on the bare command *and* children under it, that's just two calls on the same chain:
 
 ```rust
-// Works: execute() first, then hand the finished node to then()
-parent.then(CommandNode::literal("start").execute(StartExecutor));
-
-// Doesn't compile: then() gives back a borrow, execute() wants ownership
-parent.then(CommandNode::literal("start")).execute(StartExecutor);
+let fly = Command::new(&["fly".to_string()], "Toggle player flight mode")
+  .then(CommandNode::argument("players", &ArgumentType::Players).execute(FlyCommand))
+  .execute(FlyCommand);
 ```
 
-The same applies to the root. If you want an executor on the bare command *and* children under it, do the children first and reassign the root:
-
-```rust
-let mut fly = Command::new(&["fly".to_string()], "Toggle player flight mode");
-fly.then(CommandNode::argument("players", &ArgumentType::Players).execute(FlyCommand));
-fly = fly.execute(FlyCommand);
-```
-
-That `let mut` plus reassignment looks odd the first time you see it, but it's the normal shape and you'll find it in most Pumpkin plugins.
+> [!WARNING]
+> Because each call moves the node, using one as a bare statement (`fly.then(...);`) throws the returned node away and leaves `fly` moved, so the next line fails with `use of moved value`. Keep the result: chain the calls, or rebind with `let fly = fly.then(...)`. Plugins written before the SDK gained chaining (2026-08-24) used `then()` as a plain statement, and that style no longer compiles.
 
 ## How the server picks an executor
 
@@ -122,12 +108,12 @@ That last point is the one to remember. An executor only runs if the player's in
 There's no "optional" flag on an argument node. Instead you attach the same executor twice, once to the parent and once to the argument node below it:
 
 ```rust
-let mut home = Command::new(&["home".to_string()], "Teleport to a home");
-home.then(
-  CommandNode::argument("HOME_NAME", &ArgumentType::String(StringType::SingleWord))
-    .execute(HomeCommand),
-);
-home = home.execute(HomeCommand);
+let home = Command::new(&["home".to_string()], "Teleport to a home")
+  .then(
+    CommandNode::argument("HOME_NAME", &ArgumentType::String(StringType::SingleWord))
+      .execute(HomeCommand),
+  )
+  .execute(HomeCommand);
 ```
 
 Now `/home` matches the short path and `/home base` matches the long one. Both end up in `HomeCommand`, which checks whether the argument is actually there. How to do that check is on the [Command executors](./executors.md) page, and it's less obvious than it looks.
@@ -137,9 +123,9 @@ Now `/home` matches the short path and `/home base` matches the long one. Both e
 Nested literals, as deep as you like:
 
 ```rust
-let uhc = Command::new(&["uhc".to_string()], "Control the UHC minigame");
-uhc.then(CommandNode::literal("start").execute(StartExecutor));
-uhc.then(CommandNode::literal("status").execute(StatusExecutor));
+let uhc = Command::new(&["uhc".to_string()], "Control the UHC minigame")
+  .then(CommandNode::literal("start").execute(StartExecutor))
+  .then(CommandNode::literal("status").execute(StatusExecutor));
 ```
 
 ### Sharing branches
@@ -152,14 +138,12 @@ fn amount_node<H: CommandHandler + 'static>(handler: H) -> CommandNode {
     .execute(handler)
 }
 
-let eco = Command::new(&["eco".to_string()], "Manage balances");
+let mut eco = Command::new(&["eco".to_string()], "Manage balances");
 for (verb, action) in [("give", Action::Give), ("take", Action::Take)] {
-  let target = CommandNode::argument("player", &ArgumentType::Players);
-  target.then(amount_node(EcoCommand(action)));
+  let target = CommandNode::argument("player", &ArgumentType::Players)
+    .then(amount_node(EcoCommand(action)));
 
-  let literal = CommandNode::literal(verb);
-  literal.then(target);
-  eco.then(literal);
+  eco = eco.then(CommandNode::literal(verb).then(target));
 }
 ```
 
@@ -191,7 +175,7 @@ Gate access with the permission you pass to `register_command` instead. See [Com
 
 ## Registering the finished tree
 
-### `context.register_command(command, permission)`
+### `context.register_command(command, permission)` { data-since=0.1 }
 
 Same call as in the 101 chapter, and it consumes the `Command` the same way `then()` consumes a node:
 
@@ -267,7 +251,7 @@ impl Plugin for HealPlugin {
     }
   }
 
-  fn on_load(&mut self, context: Context) -> Result<()> {
+  fn on_load(&self, context: Context) -> Result<()> {
     context.register_permission(&Permission {
       node: "HealPlugin:heal".into(),
       description: "Allows running /heal".into(),
@@ -275,18 +259,13 @@ impl Plugin for HealPlugin {
       children: vec![],
     })?;
 
-    let mut heal = Command::new(&["heal".to_string()], "Restore health");
-
-    // /heal all
-    heal.then(CommandNode::literal("all").execute(HealAllCommand));
-
-    // /heal <players>
-    heal.then(
-      CommandNode::argument(PLAYERS_ARG, &ArgumentType::Players).execute(HealCommand),
-    );
-
-    // /heal, on its own. Reassign, since execute() takes the command by value
-    heal = heal.execute(HealCommand);
+    let heal = Command::new(&["heal".to_string()], "Restore health")
+      // /heal all
+      .then(CommandNode::literal("all").execute(HealAllCommand))
+      // /heal <players>
+      .then(CommandNode::argument(PLAYERS_ARG, &ArgumentType::Players).execute(HealCommand))
+      // /heal, on its own
+      .execute(HealCommand);
 
     context.register_command(heal, "HealPlugin:heal");
 

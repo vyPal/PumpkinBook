@@ -4,12 +4,12 @@
 
 ## Living entities & mobs
 
-### `.as_living()` / `.is_living()` / `.as_mob()` / `.is_mob()`
+### `.as_living()` / `.is_living()` / `.as_mob()` / `.is_mob()` { data-since=0.1 }
 
 Not every `Entity` has health or AI, a dropped item or a minecart doesn't. `as_living()` returns `Some(LivingEntity)` if this entity has health, attributes, and equipment (mobs, players, armor stands), `as_mob()` returns `Some(Mob)` if it's additionally an AI-driven mob (armor stands are living but not mobs). Both return `None` otherwise, and `is_living()`/`is_mob()` are the boolean-only versions when you don't need the handle itself.
 
 ```rust
-use pumpkin_plugin_api::{world::Entity, TextComponent};
+use pumpkin_plugin_api::{text::TextComponent, world::Entity};
 
 fn announce_hit(target: &Entity) {
   if let Some(living) = target.as_living() {
@@ -21,39 +21,39 @@ fn announce_hit(target: &Entity) {
 
 ## Identity
 
-### `.get_id()` / `.get_uuid()` / `.get_type()`
+### `.get_id()` / `.get_uuid()` / `.get_type()` { data-since=0.1 }
 
 `get_id()` is a per-server-session numeric id (not stable across restarts), `get_uuid()` is the persistent UUID, `get_type()` returns the `EntityType` (`EntityType::Zombie`, `EntityType::Item`, and so on).
 
 ## Position & movement
 
-### `.get_position()` / `.get_world()`
+### `.get_position()` / `.get_world()` { data-since=0.1 }
 
 Current coordinates and the `World` this entity is in.
 
-### `.get_yaw()` / `.get_pitch()` / `.get_head_yaw()` / `.set_rotation(yaw, pitch)`
+### `.get_yaw()` / `.get_pitch()` / `.get_head_yaw()` / `.set_rotation(yaw, pitch)` { data-since=0.1 }
 
 Body yaw/pitch, plus a separate head yaw for entities that can look independently of their body (most mobs). `set_rotation` only sets body yaw/pitch, there's no separate head-yaw setter.
 
-### `.teleport(pos, world_ref)`
+### `.teleport(pos, world_ref)` { data-since=0.1 }
 
 Moves the entity, optionally across worlds, in one call (unlike `Player::teleport`/`Player::teleport_world` being two separate methods, entity teleport always takes a world).
 
-### `.set_velocity(velocity)` / `.get_velocity()`
+### `.set_velocity(velocity)` / `.get_velocity()` { data-since=0.1 }
 
 Reads or sets the entity's motion vector directly, as a `(f64, f64, f64)` per-axis speed, not a direction-and-magnitude.
 
-### `.is_on_ground()`
+### `.is_on_ground()` { data-since=0.1 }
 
 Whether the entity is currently touching the ground.
 
 ## Naming
 
-### `.get_name()`
+### `.get_name()` { data-since=0.1 }
 
 The entity's default name as a `TextComponent` (for mobs without a custom name, this is their type name, e.g. "Zombie").
 
-### `.set_custom_name(name)` / `.get_custom_name()` / `.set_custom_name_visible(visible)` / `.is_custom_name_visible()`
+### `.set_custom_name(name)` / `.get_custom_name()` / `.set_custom_name_visible(visible)` / `.is_custom_name_visible()` { data-since=0.1 }
 
 A custom nameplate independent of the entity's type name. Setting a custom name doesn't automatically make it visible above the entity's head, `set_custom_name_visible(true)` is a separate call for that (mirrors vanilla's `CustomName`/`CustomNameVisible` NBT split).
 
@@ -67,11 +67,11 @@ Most of these are plain boolean getter/setter pairs, listed together since they 
 - `is_invulnerable` / `set_invulnerable`
 - `is_on_fire` / `set_on_fire`, `has_visual_fire` / `set_visual_fire` (a fire render override independent of actually being on fire), `get_fire_ticks` / `set_fire_ticks`
 
-### `.get_pose()`
+### `.get_pose()` { data-since=0.1 }
 
 The entity's current `EntityPose` (`Standing`, `Sleeping`, `Swimming`, `Crouching`, `Dying`, and others), read-only, driven by the entity's actual state rather than something you set directly.
 
-### `.get_width()` / `.get_height()`
+### `.get_width()` / `.get_height()` { data-since=0.1 }
 
 The entity's hitbox dimensions.
 
@@ -84,33 +84,33 @@ The entity's hitbox dimensions.
 
 ## Raycasting
 
-### `.raycast(max_distance, fluid_handling)` / `.ray_trace_block(max_distance, include_fluids)` / `.ray_trace_entity(max_distance)` / `.get_target_entity(max_distance)`
+### `.raycast(max_distance, fluid_handling)` / `.ray_trace_block(max_distance, include_fluids)` / `.ray_trace_entity(max_distance)` / `.get_target_entity(max_distance)` { data-since=0.1 }
 
 Casts a ray from this entity's eye position in its facing direction, up to `max_distance` blocks. `raycast`/`ray_trace_block` take a `fluid_handling`/`include_fluids` flag that lets the ray stop on fluids as if they were solid; `raycast` returns the older `RaycastResult { pos, face }` (block position and `BlockDirection` face), while `ray_trace_block` returns the richer `RayTraceBlockResult { pos, face, hit_pos }` with the exact hit coordinates. `ray_trace_entity` finds the closest entity along the ray and returns `RayTraceEntityResult { entity, hit_pos, distance }`; `get_target_entity` is the shortcut when you just want the `Entity` itself.
 
 ## Nearby entities & passengers
 
-### `.get_nearby_entities(x, y, z)`
+### `.get_nearby_entities(x, y, z)` { data-since=0.1 }
 
 Returns every entity within `x`/`y`/`z` blocks on each axis of this entity's position (a box, not a sphere).
 
-### `.get_vehicle()` / `.set_vehicle(vehicle)`
+### `.get_vehicle()` / `.set_vehicle(vehicle)` { data-since=0.1 }
 
 The entity this one is riding, if any. Setting `None` dismounts it.
 
-### `.get_passengers()` / `.add_passenger(passenger)` / `.remove_passenger(passenger)` / `.eject_passengers()`
+### `.get_passengers()` / `.add_passenger(passenger)` / `.remove_passenger(passenger)` / `.eject_passengers()` { data-since=0.1 }
 
 The entities riding this one, and controls for mounting/dismounting them.
 
 ## Custom data
 
-### `.set_custom_data(namespace, key, value)` / `.get_custom_data(namespace, key)` / `.remove_custom_data(namespace, key)` / `.has_custom_data(namespace, key)`
+### `.set_custom_data(namespace, key, value)` / `.get_custom_data(namespace, key)` / `.remove_custom_data(namespace, key)` / `.has_custom_data(namespace, key)` { data-since=0.1 }
 
 Attaches your own namespaced NBT to the entity, persisted with it across saves. See [Persistent Data](../persistent-data/persistent-data.md) for the friendlier wrapper around these same calls.
 
 ## Removing an entity
 
-### `.remove()`
+### `.remove()` { data-since=0.1 }
 
 Removes the entity from the world entirely, immediately, no drops, no death animation, no events. If you want a "real" death, use `.damage()` with enough force to bring health to zero instead.
 

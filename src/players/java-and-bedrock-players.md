@@ -12,78 +12,80 @@ if let Some(bedrock) = player.as_bedrock() {
 }
 ```
 
+The handle types are exported from the crate root (since 2026-09-20), so a helper function can take them by name: `fn greet(java: &JavaPlayer)` with `use pumpkin_plugin_api::{JavaPlayer, BedrockPlayer};`. The same goes for the version enums `JavaMinecraftVersion` and `BedrockMinecraftVersion`, which `get_version()` returns.
+
 ## Java-specific
 
-### `.get_version()` / `.get_brand()` / `.get_server_address()`
+### `.get_version()` / `.get_brand()` / `.get_server_address()` { data-since=0.1 }
 
 The player's Java protocol version, client brand string (`"vanilla"`, `"fabric"`, and so on, self-reported by the client), and the address they used to connect (useful behind a proxy or for virtual-host-based routing).
 
-### `.get_settings()`
+### `.get_settings()` { data-since=0.1 }
 
 A `JavaPlayerSettings` snapshot: `locale`, `view_distance`, `chat_mode` (a `ChatMode`), `chat_colors`, `skin_parts`, and more, this is the client-reported settings panel, distinct from the server-controlled skin/visibility APIs on `Player` itself.
 
-### `.send_packet(packet)` / `.send_custom_payload(channel, data)`
+### `.send_packet(packet)` / `.send_custom_payload(channel, data)` { data-since=0.1 }
 
 `send_packet` sends a fully-typed Java clientbound packet, see [Raw packets](../advanced/raw-packets.md). `send_custom_payload` sends a plugin-message-style payload on a named channel, the same mechanism Bukkit/Spigot plugin messaging channels use, for talking to a matching client-side mod or another server-side integration that listens on that channel.
 
-### `.show_dialog(dialog)` / `.clear_dialog()`
+### `.show_dialog(dialog)` / `.clear_dialog()` { data-since=0.1 }
 
 See [Java dialogs](../ui/java-dialogs.md).
 
-### `.get_scoreboard()` / `.reset_scoreboard()`
+### `.get_scoreboard()` / `.reset_scoreboard()` { data-since=0.1 }
 
 A per-player Java scoreboard override, distinct from the world's shared scoreboard (see [Scoreboards & objectives](../scoreboard/scoreboard.md)), lets you show this one player a different sidebar/objectives than everyone else. `reset_scoreboard` reverts back to the world's shared one.
 
-### `.send_resource_pack(pack)` / `.remove_resource_pack(id)` / `.clear_resource_packs()`
+### `.send_resource_pack(pack)` / `.remove_resource_pack(id)` / `.clear_resource_packs()` { data-since=0.1 }
 
 Sends a `JavaResourcePack` (`id`, `url`, `hash`, `forced`, an optional prompt message), removes one by id, or clears every custom pack sent this session.
 
-### `.kick(options)`
+### `.kick(options)` { data-since=0.1 }
 
 A `JavaKickOptions` (`reason` as a `TextComponent`, `log_to_console`, a `teardown_policy` controlling how gracefully the connection closes).
 
-### `.send_game_event(event, value)`
+### `.send_game_event(event, value)` { data-since=0.1 }
 
 Sends a raw clientbound GameEvent packet, a `ClientGameEvent` (`NoRespawnBlockAvailable`, `BeginRaining`, `EndRaining`, `ChangeGameMode`, `WinGame`, `DemoEvent`, `ArrowHitPlayer`, `RainLevelChange`, `ThunderLevelChange`, `PlayPufferfishStringSound`, `PlayElderGuardianMobAppearance`, `EnabledRespawnScreen`, `LimitedCrafting`, `StartWaitingChunks`) plus a float `value` whose meaning depends on the event (e.g. the 0.0-1.0 level for `RainLevelChange`). Mostly useful for protocol-level effects that don't have a dedicated method elsewhere on `Player`.
 
-### `.send_entity_status(entity_id, status)`
+### `.send_entity_status(entity_id, status)` { data-since=0.1 }
 
 Sends an entity status/animation packet for an arbitrary entity id, an `EntityStatus` (dozens of variants, `Poof`, `Teleport`, `VillagerHappy`, `TotemUse`-adjacent effects, and more, see `entity-statuses.wit` in the [WIT source](https://github.com/Pumpkin-MC/pumpkin-plugin-wit/blob/master/v0.1/entity-statuses.wit) for the full list). This is the same visual/sound trigger vanilla uses for one-shot mob animations, sent directly rather than through whatever normally causes it.
 
 ## Bedrock-specific
 
-### `.get_version()` / `.get_settings()`
+### `.get_version()` / `.get_settings()` { data-since=0.1 }
 
 The player's Bedrock protocol version, and a much larger `BedrockPlayerSettings` snapshot covering device info (`device_os`, `device_id`, `device_model`), input mode, UI profile, GUI scale, memory tier, graphics mode, and skin metadata (persona/premium/trusted flags, skin id, arm size).
 
 > [!NOTE]
 > `get_settings()` can fail (trapping the call) with a "client data not available" error if called before the Bedrock client's initial handshake data has fully arrived, this is mostly a concern right at connection time, calling it from a `PlayerJoinEvent` handler or later should be safe.
 
-### `.get_ability(ability)` / `.set_ability(ability, value)`
+### `.get_ability(ability)` / `.set_ability(ability, value)` { data-since=0.1 }
 
 Reads or sets one of the Bedrock-only `BedrockAbility` flags (`Build`, `Mine`, `DoorsAndSwitches`, `OpenContainers`, `AttackPlayers`, `AttackMobs`, `OperatorCommands`, `Teleport`, `Invulnerable`, `Flying`, `MayFly`, `Instabuild`, `NoClip`, and more), a finer-grained permission set than Java's `PlayerAbilities`.
 
-### `.get_status_flag(flag)` / `.set_status_flag(flag, value)`
+### `.get_status_flag(flag)` / `.set_status_flag(flag, value)` { data-since=0.1 }
 
 Reads or sets a Bedrock-only `BedrockStatusFlag`, client-side rendering/behavior flags (there are well over a hundred, covering things like `Sneaking`, `Sprinting`, `OnFire`, `Sleeping`, `Gliding`, and many mob-specific ones). Setting one manually triggers the corresponding visual state client-side without necessarily changing the underlying game state, useful for cosmetic effects.
 
-### `.send_packet(packet)`
+### `.send_packet(packet)` { data-since=0.1 }
 
 The Bedrock equivalent of `JavaPlayer::send_packet`, see [Raw packets](../advanced/raw-packets.md).
 
-### `.open_form(form)`
+### `.open_form(form)` { data-since=0.1 }
 
 See [Bedrock forms](../ui/forms.md).
 
-### `.get_scoreboard()` / `.reset_scoreboard()`
+### `.get_scoreboard()` / `.reset_scoreboard()` { data-since=0.1 }
 
 The Bedrock equivalent of the Java per-player scoreboard override, returning a `BedrockScoreboard` instead (see [Scoreboards & objectives](../scoreboard/scoreboard.md)).
 
-### `.send_resource_packs_info(info)`
+### `.send_resource_packs_info(info)` { data-since=0.1 }
 
 Sends a `BedrockResourcePacksInfo` (whether packs are required, addon-pack/script flags, and the list of `BedrockResourcePackEntry` packs to offer).
 
-### `.kick(options)`
+### `.kick(options)` { data-since=0.1 }
 
 A `BedrockKickOptions` (a protocol-level `BedrockDisconnectReason`, a display message, a flag to suppress showing that message, a separately-filtered message for parental controls, and `log_to_console`).
 

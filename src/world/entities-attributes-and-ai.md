@@ -4,21 +4,21 @@ Health, attributes, equipment, targeting, pathfinding, and AI goals all live on 
 
 ## Health & combat
 
-### `.get_health()` / `.set_health(health)` / `.get_max_health()` / `.set_max_health(max_health)` / `.damage(amount, damage_type)` / `.is_dead()`
+### `.get_health()` / `.set_health(health)` / `.get_max_health()` / `.set_max_health(max_health)` / `.damage(amount, damage_type)` / `.is_dead()` { data-since=0.1 }
 
 Same shape as the player health methods from [Health, effects & stats](../players/player-status.md). There's no `heal()` shortcut here like there is on `Player`, add to `get_health()` yourself and clamp to `get_max_health()`.
 
-### `.get_absorption()` / `.set_absorption(amount)`
+### `.get_absorption()` / `.set_absorption(amount)` { data-since=0.1 }
 
 Absorption (extra) hearts, same concept as the player version.
 
 ## Attributes
 
-### `.get_attribute_value(attr)` / `.get_attribute_base(attr)` / `.set_attribute_base(attr, value)`
+### `.get_attribute_value(attr)` / `.get_attribute_base(attr)` / `.set_attribute_base(attr, value)` { data-since=0.1 }
 
 `get_attribute_value` returns the *computed* value of an `Attribute` (`MaxHealth`, `MovementSpeed`, `AttackDamage`, and dozens more) after all modifiers are applied, `get_attribute_base`/`set_attribute_base` work with the unmodified base value underneath.
 
-### `.add_attribute_modifier(attr, modifier)` / `.remove_attribute_modifier(attr, id)` / `.get_attribute_modifiers(attr)`
+### `.add_attribute_modifier(attr, modifier)` / `.remove_attribute_modifier(attr, id)` / `.get_attribute_modifiers(attr)` { data-since=0.1 }
 
 An `AttributeModifier` is `{ id, amount, operation }`, where `operation` is `ModifierOperation::Add`, `MultiplyBase`, or `MultiplyTotal` (matching vanilla's additive/multiplicative attribute stacking rules). `remove_attribute_modifier` takes the modifier's `id` string, the same one it was added with.
 
@@ -26,7 +26,7 @@ An `AttributeModifier` is `{ id, amount, operation }`, where `operation` is `Mod
 use pumpkin_plugin_api::{Attribute, AttributeModifier, ModifierOperation};
 
 if let Some(living) = zombie.as_living() {
-  living.add_attribute_modifier(Attribute::MovementSpeed, AttributeModifier {
+  living.add_attribute_modifier(Attribute::MovementSpeed, &AttributeModifier {
     id: "my_plugin:speed_boost".to_string(),
     amount: 0.5,
     operation: ModifierOperation::MultiplyTotal,
@@ -34,7 +34,7 @@ if let Some(living) = zombie.as_living() {
 }
 ```
 
-### `.reset_attribute(attr)` / `.reset_all_attributes()`
+### `.reset_attribute(attr)` / `.reset_all_attributes()` { data-since=0.1 }
 
 Clears an attribute (or every attribute) back to its default base value with no modifiers.
 
@@ -43,7 +43,7 @@ Clears an attribute (or every attribute) back to its default base value with no 
 
 ## Equipment
 
-### `.get_equipment(slot)` / `.set_equipment(slot, stack)` / `.clear_equipment()`
+### `.get_equipment(slot)` / `.set_equipment(slot, stack)` / `.clear_equipment()` { data-since=0.1 }
 
 Reads, sets, or clears an equipped item in an `EquipmentSlot` (`MainHand`, `OffHand`, `Feet`, `Legs`, `Chest`, `Head`, `Body`, the last being for entities like horses with body armor). `set_equipment` broadcasts the visual change to nearby clients.
 
@@ -53,35 +53,35 @@ Reads, sets, or clears an equipped item in an `EquipmentSlot` (`MainHand`, `OffH
 
 ## Targeting
 
-### `.set_target(target)` / `.get_target()`
+### `.set_target(target)` / `.get_target()` { data-since=0.1 }
 
 The entity this mob is currently targeting (attacking or fleeing from, depending on its AI), as an `Option<Entity>`. Mob-only, not on `LivingEntity`, an armor stand can't target anything.
 
 ## Pathfinding & navigation
 
-### `.navigate_to_pos(pos, speed)` / `.navigate_to_entity(target, speed)` / `.stop_navigation()`
+### `.navigate_to_pos(pos, speed)` / `.navigate_to_entity(target, speed)` / `.stop_navigation()` { data-since=0.1 }
 
 Starts the mob walking toward a position or another entity using the built-in pathfinder, at `speed` (same units as `BuiltinAiGoal::WanderAround`'s speed). Both return `false` if no path could be found. `stop_navigation` cancels an in-progress path immediately.
 
-### `.is_navigating()` / `.has_reached_destination()` / `.set_navigation_speed(speed)`
+### `.is_navigating()` / `.has_reached_destination()` / `.set_navigation_speed(speed)` { data-since=0.1 }
 
 Checks whether the mob currently has an active path, whether it's arrived, and lets you change the speed of an in-progress navigation without restarting it.
 
-### `.can_reach(pos, max_distance)`
+### `.can_reach(pos, max_distance)` { data-since=0.1 }
 
 Checks whether the pathfinder thinks it can reach `pos` within `max_distance` blocks, without actually starting navigation, useful for AI goals deciding whether a target is worth pursuing.
 
-### `.set_pathfinding_malus(node_type, malus)` / `.get_pathfinding_malus(node_type)`
+### `.set_pathfinding_malus(node_type, malus)` / `.get_pathfinding_malus(node_type)` { data-since=0.1 }
 
 Tunes how much this mob avoids a given `PathNodeType` (`Lava`, `DangerFire`, `Water`, `Cocoa`, and dozens more terrain classifications), a higher malus makes the pathfinder route around it more aggressively, matching vanilla's per-mob pathfinding penalties (e.g. why villagers avoid open trapdoors over holes).
 
-### `.look_at(pos)` / `.look_at_entity(target)`
+### `.look_at(pos)` / `.look_at_entity(target)` { data-since=0.1 }
 
 Turns the mob's head and body to face a position or entity, independent of navigation.
 
 ## Specialized mob data
 
-### `.get_mob_data()` / `.set_mob_data(data)`
+### `.get_mob_data()` / `.set_mob_data(data)` { data-since=0.1 }
 
 Every `Mob` carries a `MobData` variant matching its actual type (`MobData::Zombie(ZombieData { is_baby, can_break_doors })`, `MobData::Wolf(WolfData { is_tamed, owner, is_sitting, collar_color, .. })`, `MobData::Creeper`, `MobData::Sheep`, `MobData::Villager`, and more), or `MobData::Generic` for mobs without specialized data. `set_mob_data` returns `false` if you pass a variant that doesn't match the mob's real type (you can't turn a zombie's data into `SheepData`).
 
@@ -105,7 +105,7 @@ fn tame_wolf(entity: &Entity, owner: Uuid) {
 
 ## AI goals
 
-### `.add_ai_goal(priority, goal)`
+### `.add_ai_goal(priority, goal)` { data-since=0.1 }
 
 Adds one of the built-in mob AI behaviors, a `BuiltinAiGoal` (`Swim`, `WanderAround(speed)`, `MeleeAttack(speed)`, `LookAtPlayer(range)`, `LookAround`, `EscapeDanger(speed)`, `AvoidEntity(distance)`, `BlazeAttack`, `CreeperIgnite`, `EatGrass`, `ZombieAttack(speed)`), at a given priority (lower numbers run first, mirroring vanilla goal priority).
 
@@ -117,18 +117,18 @@ zombie.add_ai_goal(1, BuiltinAiGoal::WanderAround(0.8));
 zombie.add_ai_goal(2, BuiltinAiGoal::LookAtPlayer(8.0));
 ```
 
-### `.add_custom_ai_goal(priority, goal_id)` / `pumpkin_plugin_api::ai::AiGoal`
+### `.add_custom_ai_goal(priority, goal_id)` / `pumpkin_plugin_api::ai::AiGoal` { data-since=0.1 data-status=unimplemented }
 
-The `AiGoal` trait lets you implement fully custom mob behavior (`can_start`, `should_continue`, `start`, `tick`, `stop`, each given the `Server` and the `Entity` running the goal), and `add_custom_ai_goal` attaches one to a `Mob` by a `u32` id the host looks up on each tick.
+The `AiGoal` trait lets you implement fully custom mob behavior (`can_start`, `should_continue`, `start`, `tick`, `stop`, each given the `Server` and the `Entity` running the goal), and `add_custom_ai_goal` attaches one to a `Mob` by a `u32` id the host looks up on each tick. The trait's methods take `&self` (before 2026-09-04 they took `&mut self`), so a goal that keeps state needs interior mutability, same as the rest of your plugin, see [Plugin state, handles and reentrancy](../plugin-101/plugin-logic.md#plugin-state-handles-and-reentrancy).
 
 > [!WARNING]
 > As of this version, there's still no public function to register an `AiGoal` implementation and obtain the `goal_id` that `add_custom_ai_goal` expects. The registration machinery (`AI_GOAL_HANDLERS`, `LazyAiGoalHandlers::register`) exists internally and the host-side dispatch (`handle_ai_goal_can_start`/`should_continue`/`start`/`tick`/`stop`) is fully wired up, but unlike the task scheduler's equivalent private registry (which is reachable through public `schedule_delayed_task`/`schedule_repeating_task` functions), nothing in `pumpkin-plugin-api` currently exposes an equivalent entry point for AI goals. Until one is added, only the built-in goals via `add_ai_goal` are usable. This is unchanged from earlier versions of this crate.
 
-### `.clear_ai_goals()` / `.set_ai_disabled(disabled)` / `.is_ai_disabled()`
+### `.clear_ai_goals()` / `.set_ai_disabled(disabled)` / `.is_ai_disabled()` { data-since=0.1 }
 
 Removes every AI goal from the entity, or disables AI processing entirely (the entity stops acting on any goal, built-in or otherwise, without removing them).
 
-### `.set_freeze_ticks(ticks)` / `.get_freeze_ticks()`
+### `.set_freeze_ticks(ticks)` / `.get_freeze_ticks()` { data-since=0.1 }
 
 Ticks of exposure to powdered snow (0-140), controlling the mob's frostbite/freeze visual state, the same mechanic exposed for players in [Inventory & environment](../players/player-inventory-and-environment.md).
 

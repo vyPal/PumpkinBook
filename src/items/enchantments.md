@@ -4,7 +4,7 @@ Register brand new enchantments (not just apply vanilla ones, covered in [Item s
 
 ## Defining one
 
-### `EnchantmentBuilder::new(id, description)`
+### `EnchantmentBuilder::new(id, description)` { data-since=0.1 }
 
 `description` is a `TextComponent`, the name shown for the enchantment in tooltips and the enchanting table.
 
@@ -55,13 +55,13 @@ fn give_sword() -> ItemStack {
 
 ## Looking enchantments up
 
-### `manager.get(id)` / `manager.has(id)` / `manager.get_all_ids()`
+### `manager.get(id)` / `manager.has(id)` / `manager.get_all_ids()` { data-since=0.1 }
 
 Friendlier-named aliases for `get_enchantment`/`has_enchantment`/`get_all_enchantment_ids`, work for both custom and vanilla enchantment ids.
 
 ## A small helper: Roman numerals
 
-### `enchantment::to_roman_numeral(level)`
+### `enchantment::to_roman_numeral(level)` { data-since=0.1 }
 
 Converts a level number to the Roman numeral Minecraft tooltips traditionally use (`1` → `"I"`, `4` → `"IV"`, and so on, `1`-`10` covered, anything higher falls back to the plain number).
 
@@ -81,7 +81,7 @@ use pumpkin_plugin_api::{
   text::TextComponent, Context, ItemStack, Result,
 };
 
-fn on_load(&mut self, context: Context) -> Result<()> {
+fn on_load(&self, context: Context) -> Result<()> {
   context.register_enchantment(
     EnchantmentBuilder::new("my_plugin:vampiric", TextComponent::text("Vampiric"))
       .max_level(2)

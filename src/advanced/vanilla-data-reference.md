@@ -4,7 +4,7 @@ A handful of WIT interfaces don't expose any behavior of their own, they're just
 
 ## What's actually usable today
 
-Not every one of these types has a public path in `pumpkin-plugin-api` yet. Quick status check before you reach for one:
+Most of these types have a short path at the root of `pumpkin-plugin-api`. A few don't, but every type in the WIT is reachable through the crate's raw bindings module, `pumpkin_plugin_api::wit::pumpkin::plugin::<interface>`, which has been public since 2026-09-20. Quick status check before you reach for one:
 
 | Catalog | Rust type | Accessible as | Status |
 |---|---|---|---|
@@ -15,9 +15,9 @@ Not every one of these types has a public path in `pumpkin-plugin-api` yet. Quic
 | Data components | `DataComponent` | `pumpkin_plugin_api::data_components::DataComponent` | Usable |
 | Statistics | `StatisticCategory`, `CustomStatistic` | `pumpkin_plugin_api::{StatisticCategory, CustomStatistic}` | Usable |
 | Game rules | `GameRule`, `GameRuleValue` | `pumpkin_plugin_api::{GameRule, GameRuleValue}` | Usable, see [The world handle](../world/world-and-time.md#game-rules) |
-| Biomes | `Biome` | `pumpkin_plugin_api::worldgen::PluginBiome` | Usable, but only via this non-obvious alias, see [Custom chunk generation](../worldgen/custom-world-generation.md) |
-| Sounds | `Sound` | *(none)* | **Not exported**, `World::play_sound` can't currently be called, see [The world handle](../world/world-and-time.md#sound--particles) |
-| Status effects | `StatusEffectType`, `StatusEffectInstance` | *(none)* | **Not exported**, `Player::add_effect` and friends can't currently be called, see [Health, effects & stats](../players/player-status.md#status-effects) |
+| Biomes | `Biome` | `pumpkin_plugin_api::worldgen::PluginBiome` (or `pumpkin_plugin_api::wit::pumpkin::plugin::biomes::Biome`) | Usable, see [Custom chunk generation](../worldgen/custom-world-generation.md) |
+| Sounds | `Sound` | `pumpkin_plugin_api::wit::pumpkin::plugin::sounds::Sound` | Usable through the raw bindings path only, see [The world handle](../world/world-and-time.md#sound--particles) |
+| Status effects | `StatusEffectType`, `StatusEffectInstance` | `pumpkin_plugin_api::wit::pumpkin::plugin::status_effect::{StatusEffectType, StatusEffectInstance}` | Usable through the raw bindings path only, see [Health, effects & stats](../players/player-status.md#status-effects) |
 
 ## Damage types
 
@@ -55,13 +55,15 @@ player.damage(4.0, DamageType::InFire);
 
 ## Putting it together
 
-A "campfire" effect combining several of the *usable* catalogs at once: a particle, sound-free (since `Sound` isn't reachable yet), a fire damage tick, and a custom statistic bump:
+A "campfire" effect combining several of the catalogs at once: a particle, a sound, a fire damage tick, and a custom statistic bump:
 
 ```rust
-use pumpkin_plugin_api::{particles::Particle, CustomStatistic, DamageType};
+use pumpkin_plugin_api::{particles::Particle, world::SoundCategory, CustomStatistic, DamageType};
+use pumpkin_plugin_api::wit::pumpkin::plugin::sounds::Sound;
 
 fn stand_in_fire(world: &World, player: &Player, pos: (f64, f64, f64)) {
   world.spawn_particle(Particle::Flame, pos, (0.3, 0.3, 0.3), 0.05, 8);
+  world.play_sound(Sound::BlockFireAmbient, SoundCategory::Blocks, pos, 1.0, 1.0);
   player.damage(1.0, DamageType::InFire);
   player.increment_custom_statistic(CustomStatistic::TimeSinceDeath, 1);
 }

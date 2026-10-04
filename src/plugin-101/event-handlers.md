@@ -24,12 +24,12 @@ impl EventHandler<PlayerJoinEvent> for WelcomeHandler {
 
 The `handle()` method receives a reference to the `Server` and the event's data, and **must** return the (possibly modified) data back. This mirrors the lower-level `handle_event(event_id, server, event) -> event` contract described in [Basic plugin logic](./plugin-logic.md), except the `EventHandler` trait lets you work with the concrete data type for your event instead of the generic `Event` variant.
 
-### `context.register_event_handler(handler, priority, blocking) -> result<u32>`
+### `context.register_event_handler(handler, priority, blocking) -> result<u32>` { data-since=0.1 }
 
 This method, available on the `Context` object, registers a handler with the server.
 
 ```rust
-fn on_load(&mut self, context: Context) -> Result<()> {
+fn on_load(&self, context: Context) -> Result<()> {
   context.register_event_handler(WelcomeHandler, EventPriority::Normal, true)?;
   Ok(())
 }
@@ -64,12 +64,18 @@ If you don't have a specific reason to pick something else, `EventPriority::Norm
 The `blocking` flag decides whether the server waits for your handler to finish before moving on:
 
 - A **blocking** handler pauses the corresponding action until it returns. Only a blocking handler can reliably cancel an event or have its modifications to the event data actually change what happens.
-- A **non-blocking** handler runs without the server waiting on it. It still receives the event and can inspect its data, but any changes it makes (including setting `cancelled`) may be dropped, since the server can already be done processing the event by the time the handler runs.
+- A **non-blocking** handler runs without the server waiting on it. It gets its own copy of the event to inspect, and whatever it returns is thrown away: changes to the data, including setting `cancelled`, never reach the server, since it may already be done processing the event by the time the handler runs.
 
 If your handler needs to cancel an event, or change data that affects gameplay (like a chat message or a join message), register it with `blocking: true`. Non-blocking handlers are a good fit for read-only side effects, like logging or updating your plugin's own state.
 
 > [!WARNING]
-> A blocking handler holds up the action it's attached to until it returns, so keep the work inside one fast. If you need to do something slow (a network request, heavy computation, disk I/O), consider deferring it to the task scheduler instead of doing it directly inside the handler.
+> A blocking handler holds up the action it's attached to until it returns, so keep the work inside one fast. If you need to do something slow (a network request, heavy computation, disk I/O), consider deferring it to the task scheduler instead of doing it directly inside the handler. All plugins take turns, so a slow handler delays every other plugin's callbacks as well, see [Task scheduler](./task-scheduler.md#a-note-on-blocking).
+
+### Events can arrive in the middle of your own calls
+
+Events are delivered synchronously. If your code calls into the host and that action fires an event your plugin has a blocking handler for, the handler runs **inside** your call, before it returns. `server.broadcast_message()` is the easy one to trip over: it fires `ServerBroadcastEvent`, so a `ServerBroadcastEvent` handler that broadcasts a message of its own re-enters itself, and keeps doing so. The same goes for `server.execute_command()` re-entering your own command executors. Two consequences: don't hold a lock across host calls (the [Basic plugin logic](./plugin-logic.md#plugin-state-handles-and-reentrancy) chapter has the details), and guard against runaway recursion yourself. Nested calls are cut off at 64 levels, and the call that crosses the limit fails and kills the plugin.
+
+If a handler fails at the WASM level (a panic, an `unwrap()` on `None`), the server logs `Wasm event handler failed` and carries on, but the plugin itself is dead from that point, see [Returning from an executor](../commands/executors.md#returning-from-an-executor).
 
 ## Reading and modifying event data
 
@@ -143,7 +149,7 @@ impl Plugin for WelcomePlugin {
     }
   }
 
-  fn on_load(&mut self, context: Context) -> Result<()> {
+  fn on_load(&self, context: Context) -> Result<()> {
     // blocking: true, since we need our replacement message to actually be used
     context.register_event_handler(WelcomeHandler, EventPriority::Normal, true)?;
     Ok(())
@@ -198,7 +204,7 @@ impl Plugin for GuardPlugin {
     }
   }
 
-  fn on_load(&mut self, context: Context) -> Result<()> {
+  fn on_load(&self, context: Context) -> Result<()> {
     // blocking: true, since our cancellation needs to actually stop the break
     context.register_event_handler(ProtectSpawnChest, EventPriority::Normal, true)?;
     Ok(())
@@ -210,16 +216,19 @@ register_plugin!(GuardPlugin);
 
 ## Available events
 
-The Pumpkin plugin WIT currently defines around 70 events, covering most things a plugin might want to react to. A handful of the more commonly used ones, grouped by what they relate to:
+The plugin WIT currently defines **273** events, covering most things a plugin might want to react to. A handful of the more commonly used ones, grouped by what they relate to:
 
 - **Player**: `PlayerJoinEvent`, `PlayerLeaveEvent`, `PlayerChatEvent`, `PlayerMoveEvent`, `PlayerTeleportEvent`, `PlayerDeathEvent`, `PlayerRespawnEvent`, `PlayerInteractEvent`, `PlayerGamemodeChangeEvent`
 - **Block**: `BlockBreakEvent`, `BlockPlaceEvent`, `BlockBurnEvent`, `BlockIgniteEvent`, `BlockRedstoneEvent`
 - **Entity**: `EntityDamageEvent`, `EntityDeathEvent`, `EntitySpawnEvent`, `EntityCombustEvent`
 - **Inventory**: `InventoryClickEvent`, `InventoryOpenEvent`, `CraftItemEvent`, `FurnaceSmeltEvent`
-- **World**: `WorldLoadEvent`, `ChunkLoadEvent`, `WeatherChangeEvent`
+- **World**: `WorldLoadEvent`, `ChunkUnloadEvent`, `WeatherChangeEvent`
 - **Server**: `ServerLoadEvent`, `ServerTickStartEvent`, `ServerBroadcastEvent`, `ServerCommandEvent`
 - **Network**: `PacketReceivedEvent`, `PacketSentEvent`
 
 Each one follows the exact same `FromIntoEvent`/`EventHandler` pattern shown above, just with a different associated data record. For the full, up to date list of events and the fields their data records carry, check the [event handler sources](https://github.com/Pumpkin-MC/Pumpkin/blob/master/crates/pumpkin-plugin-api/src/events) in the `pumpkin-plugin-api` crate, or the [`event` interface](https://github.com/Pumpkin-MC/pumpkin-plugin-wit) in the WIT definitions directly.
+
+> [!WARNING]
+> Not every event in the WIT is fired by the server yet. As of the commit this book was checked against, 58 of the 273 are declared and can be registered for, but nothing in the server ever creates them, so a handler for one of them simply never runs. Some of the notable ones are `PlayerCommandPreprocessEvent`, `AsyncPlayerChatEvent`, `PlayerPreLoginEvent`, `PlayerPortalEvent`, `EntityKnockbackEvent` and `HangingPlaceEvent`. The [Event reference](../advanced/event-reference.md) lists every event with its category and whether it fires.
 
 Pumpkin is still working towards full parity with the Spigot/Bukkit event API — [issue #1609](https://github.com/Pumpkin-MC/Pumpkin/issues/1609) tracks which Spigot events have already been ported over, and is a good way to see what's still missing.

@@ -4,14 +4,14 @@ A small, free-function interface for server-side translation lookups, addressed 
 
 ## Looking up a translation
 
-### `i18n::translate(key, locale)`
+### `i18n::translate(key, locale)` { data-since=0.1 }
 
 Resolves a translation key to plain text, server-side, for a specific `Locale`. This is different from `TextComponent::translate` (see [Text components](./text-components.md)), which sends a key to the *client* and lets it resolve the key using its own language file, `i18n::translate` resolves the key on the server and gives you back a plain `String`, useful when you need the actual resolved text yourself (building a log message, a console command's feedback, or anything that isn't rendered by a Minecraft client).
 
 ```rust
 use pumpkin_plugin_api::{common::Locale, i18n};
 
-let text = i18n::translate("multiplayer.player.joined".to_string(), Locale::EnUs);
+let text = i18n::translate("multiplayer.player.joined", Locale::EnUs);
 ```
 
 > [!WARNING]
@@ -19,7 +19,7 @@ let text = i18n::translate("multiplayer.player.joined".to_string(), Locale::EnUs
 
 ## Registering your own translations
 
-### `i18n::load_translations(namespace, json, locale)`
+### `i18n::load_translations(namespace, json, locale)` { data-since=0.1 }
 
 Loads a flat JSON map of your own translation keys for a given namespace and locale, so `i18n::translate("my_plugin:welcome_message", locale)` resolves to whatever you registered instead of erroring or falling through to a vanilla key.
 
@@ -30,7 +30,7 @@ let translations = r#"{
   "my_plugin:welcome_message": "Welcome to the server!"
 }"#;
 
-i18n::load_translations("my_plugin".to_string(), translations.to_string(), Locale::EnUs);
+i18n::load_translations("my_plugin", translations, Locale::EnUs);
 ```
 
 Load your translation files early, in `on_load`, before anything might try to resolve a key from them.
@@ -42,17 +42,17 @@ Loading a couple of custom keys at startup, then using one to build a system mes
 ```rust
 use pumpkin_plugin_api::{common::Locale, i18n, text::TextComponent, Context, Result};
 
-fn on_load(&mut self, context: Context) -> Result<()> {
+fn on_load(&self, context: Context) -> Result<()> {
   let translations = r#"{
     "my_plugin:shop_closed": "The shop is currently closed."
   }"#;
-  i18n::load_translations("my_plugin".to_string(), translations.to_string(), Locale::EnUs);
+  i18n::load_translations("my_plugin", translations, Locale::EnUs);
 
   Ok(())
 }
 
 fn notify_shop_closed(sender: &CommandSender) {
-  let message = i18n::translate("my_plugin:shop_closed".to_string(), Locale::EnUs);
+  let message = i18n::translate("my_plugin:shop_closed", Locale::EnUs);
   sender.send_message(TextComponent::text(&message));
 }
 ```

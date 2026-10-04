@@ -6,15 +6,15 @@ Block entities are the "extra data" blocks that need more than just their block 
 
 Every block entity, whatever its specific kind, gives you `.get_block_entity()` back to a shared base `BlockEntity`:
 
-### `.resource_location()` / `.get_position()` / `.get_id()`
+### `.resource_location()` / `.get_position()` / `.get_id()` { data-since=0.1 }
 
 The block's registry key (`"minecraft:chest"`), its position, and a per-session numeric id.
 
-### `.is_dirty()` / `.clear_dirty()`
+### `.is_dirty()` / `.clear_dirty()` { data-since=0.1 }
 
 Whether the block entity has unsaved changes pending. Mostly relevant if you're inspecting internal state rather than something you'd normally need to manage yourself.
 
-### `.set_custom_data(namespace, key, value)` / `.get_custom_data(namespace, key)` / `.remove_custom_data(namespace, key)` / `.has_custom_data(namespace, key)`
+### `.set_custom_data(namespace, key, value)` / `.get_custom_data(namespace, key)` / `.remove_custom_data(namespace, key)` / `.has_custom_data(namespace, key)` { data-since=0.1 }
 
 Namespaced NBT storage on the block entity, same shape as everywhere else, see [Persistent Data](../persistent-data/persistent-data.md), `PersistentDataHolder` is implemented for `BlockEntity` too.
 
@@ -44,11 +44,11 @@ if let Some(entity) = world.get_block_entity(pos) {
 
 Most storage-holding block entities (chests, barrels, furnaces, hoppers, droppers, dispensers, and more) expose a `.get_container()` returning a shared `ContainerBlockEntity`:
 
-### `.get_size()` / `.is_empty()` / `.get_stack(slot)` / `.set_stack(slot, stack)` / `.remove_stack(slot)` / `.clear()`
+### `.get_size()` / `.is_empty()` / `.get_stack(slot)` / `.set_stack(slot, stack)` / `.remove_stack(slot)` / `.clear()` { data-since=0.1 }
 
 Standard inventory access, `Option<ItemStack>` per slot, same shape as `Player`'s inventory methods.
 
-### `.get_inventory()`
+### `.get_inventory()` { data-since=0.1 }
 
 Returns the container's contents as a generic `Inventory` handle, the same type used for player inventories and GUIs, see [Inventory & environment](../players/player-inventory-and-environment.md#inventory-handles). Same underlying slots as the methods above, useful when you're writing code generic over any `Inventory`-shaped thing.
 
@@ -59,6 +59,9 @@ A handful of the most frequently-used block entities, everything else follows th
 ### Chests, trapped chests, barrels, shulker boxes
 
 `get_container()` plus `.viewer_count()`, how many players currently have the container's screen open.
+
+> [!WARNING]
+> Only chests and trapped chests report a real `viewer_count()`. For barrels, ender chests and shulker boxes the host's implementation is hardcoded to return `0`, so don't use it to detect whether one of those is open.
 
 ### Signs & hanging signs
 
@@ -93,7 +96,7 @@ The rest are read-only accessors specific to that one block type, all reachable 
 | `CrafterBlockEntity` | `get_container`, `get_crafting_ticks_remaining`, `is_triggered` |
 | `CreakingHeartBlockEntity` | `get_creaking_uuid` |
 | `EndGatewayBlockEntity` | `get_age`, `is_exact_teleport` |
-| `EnderChestBlockEntity` | `viewer_count` |
+| `EnderChestBlockEntity` | `viewer_count` (always `0` for now) |
 | `HopperBlockEntity` | `get_container`, `get_cooldown` |
 | `JigsawBlockEntity` | `get_name`, `get_target`, `get_pool`, `get_final_state`, `get_selection_priority`, `get_placement_priority` |
 | `LecternBlockEntity` | `get_container`, `get_page` |

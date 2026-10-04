@@ -4,7 +4,7 @@
 
 ## Creating one
 
-### `Gui::new(type, title)`
+### `Gui::new(type, title)` { data-since=0.1 }
 
 `type` is a `Screen` (`Generic9x1` through `Generic9x6` for plain chest-style rows, `Generic3x3`/`Crafter3x3`, or a themed layout like `Anvil`, `Beacon`, `Merchant`, `Furnace`, `Hopper`, `Loom`, `Smithing`, `Stonecutter`, and others matching vanilla screen types), `title` is a `TextComponent` shown at the top.
 
@@ -16,7 +16,7 @@ let menu = Gui::new(Screen::Generic9x3, TextComponent::text("Shop"));
 
 ## Items
 
-### `.set_item(slot, item)` / `.get_item(slot)` / `.clear_items()`
+### `.set_item(slot, item)` / `.get_item(slot)` / `.clear_items()` { data-since=0.1 }
 
 Places or reads an `ItemStack` in a slot (indexed left-to-right, top-to-bottom, `0`-based), or empties every slot at once. `.get_size()` tells you how many slots the current `Screen` type actually has, so you don't hardcode a slot count that only matches one layout.
 
@@ -26,13 +26,13 @@ use pumpkin_plugin_api::ItemStack;
 menu.set_item(13, ItemStack::new("minecraft:diamond", 1));
 ```
 
-### `.get_inventory()`
+### `.get_inventory()` { data-since=0.1 }
 
 Returns the GUI's contents as a generic `Inventory` handle, the same type used for player inventories and containers (see [Inventory & environment](../players/player-inventory-and-environment.md#inventory-handles)). Useful if you're writing code that works against any `Inventory`-shaped thing rather than `Gui` specifically, `set_item`/`get_item` above are the more direct way to work with a GUI on its own.
 
 ## Interaction permissions
 
-### `.set_allow_grab_items(allow)` / `.get_allow_grab_items()` / `.set_allow_put_items(allow)` / `.get_allow_put_items()`
+### `.set_allow_grab_items(allow)` / `.get_allow_grab_items()` / `.set_allow_put_items(allow)` / `.get_allow_put_items()` { data-since=0.1 }
 
 By default a custom GUI behaves like a normal inventory, players can take items out and put their own items in. For a menu-style GUI (buttons, not storage), turn both off so the "items" act as inert, clickable icons instead of things players can walk away with.
 

@@ -103,27 +103,27 @@ let speed = match speed {
 };
 ```
 
-### `Quotable` strings aren't quotable yet
+### `Quotable` strings aren't quotable yet { data-since=0.1 }
 
 `StringType` has three modes, but only two distinct behaviors right now. `SingleWord` and `Quotable` are both wired to the same server-side parser, so `Quotable` gives you a single raw token with any quote characters still attached, exactly like `SingleWord` would.
 
 `Greedy` is genuinely different: it swallows every remaining token, joined with single spaces, and gives you `Arg::Msg`. Since it consumes the rest of the line, a greedy argument can only ever be the last node on its branch. Anything you attach below it is unreachable.
 
-### `Entities` and `Entity` are not usable
+### `Entities` and `Entity` are not usable { data-since=0.1 }
 
 Both parse correctly on the server, and both will happily accept `@e[type=zombie]`. But entities have no representation in the plugin interface yet, so by the time the value reaches your executor it has been flattened to an empty `Arg::Simple("")`. There's nothing you can do with that.
 
 If you need players, use `Players`, which works properly. If you need arbitrary entities, that's not currently reachable through a command argument.
 
-### `GameProfile` gives you players
+### `GameProfile` gives you players { data-since=0.1 }
 
 It's wired to the same parser as `Players`, so despite the name you get `Arg::Players`, and only players who are currently online. There's no way to resolve an offline player's profile through a command argument.
 
-### `ItemPredicate` gives you `Arg::Item`
+### `ItemPredicate` gives you `Arg::Item` { data-since=0.1 }
 
 The predicate parser accepts `#tag` syntax and produces the same `Arg::Item(String)` variant a plain item argument does. There is an `Arg::ItemPredicate` variant in the interface, but nothing currently produces it. Match on `Arg::Item` for both.
 
-### `Resource` ignores its namespace
+### `Resource` ignores its namespace { data-since=0.1 }
 
 `ArgumentType::Resource("minecraft:mob_effect".to_string())` looks like it should restrict input to effect ids and offer them in tab completion. It doesn't. The namespace string is discarded and the argument behaves as a plain `ResourceLocation`, so you're validating the string yourself either way.
 
@@ -137,7 +137,7 @@ The predicate parser accepts `#tag` syntax and produces the same `Arg::Item(Stri
 
 `Rotation` gives you a four-element tuple rather than two numbers: `(yaw, yaw_is_relative, pitch, pitch_is_relative)`. The booleans tell you whether the player used `~`, which matters if you want to apply the value as an offset rather than an absolute.
 
-### `Time`
+### `Time` { data-since=0.1 }
 
 Accepts a bare number of ticks, or a number with a unit suffix: `t` for ticks, `s` for seconds (20 ticks), `d` for in-game days (24000 ticks). You always get ticks back as an `i32`, rounded. The optional configuration value is a minimum, also in ticks, and input below it is rejected before it reaches you. `Time(Some(0))` is a good way to say "no negative durations".
 
@@ -201,18 +201,17 @@ impl CommandHandler for SetWarpCommand {
 }
 
 pub fn register(context: &Context) -> Result<()> {
-  let setwarp = Command::new(&["setwarp".to_string()], "Create a warp point");
+  let delay = CommandNode::argument(DELAY, &ArgumentType::Integer((Some(0), Some(200))))
+    .execute(SetWarpCommand);
 
-  let name = CommandNode::argument(NAME, &ArgumentType::String(StringType::SingleWord));
-  let position = CommandNode::argument(POS, &ArgumentType::Position3d).execute(SetWarpCommand);
+  let position = CommandNode::argument(POS, &ArgumentType::Position3d)
+    .then(delay)
+    .execute(SetWarpCommand);
 
-  position.then(
-    CommandNode::argument(DELAY, &ArgumentType::Integer((Some(0), Some(200))))
-      .execute(SetWarpCommand),
-  );
+  let name = CommandNode::argument(NAME, &ArgumentType::String(StringType::SingleWord))
+    .then(position);
 
-  name.then(position);
-  setwarp.then(name);
+  let setwarp = Command::new(&["setwarp".to_string()], "Create a warp point").then(name);
 
   context.register_command(setwarp, "MyPlugin:setwarp");
   Ok(())

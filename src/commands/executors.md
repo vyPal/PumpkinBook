@@ -33,7 +33,7 @@ The same instance handles every invocation, and `handle()` only takes `&self`, s
 
 ## Reading arguments
 
-### `args.get_value(key)`
+### `args.get_value(key)` { data-since=0.1 }
 
 The `key` is the **name you gave the argument node** when you built the tree. What comes back is an `Arg`, which you match on to get at the value:
 
@@ -134,8 +134,8 @@ if let Some(player) = sender.as_player() {
 All three take a `TextComponent`, so you can colour and format them:
 
 ```rust
-let text = TextComponent::text("You are not flying right now.");
-text.color_named(NamedColor::Red);
+let text = TextComponent::text("You are not flying right now.")
+  .color_named(NamedColor::Red);
 sender.send_message(text);
 ```
 
@@ -178,8 +178,8 @@ The bottom two also write an `error!` line to the server log. They exist to repo
 ```rust
 // Good: the player gets a clear, friendly message
 let Some(player) = sender.as_player() else {
-  let text = TextComponent::text("Only a player can use /home.");
-  text.color_named(NamedColor::Red);
+  let text = TextComponent::text("Only a player can use /home.")
+    .color_named(NamedColor::Red);
   sender.send_message(text);
   return Ok(1);
 };
@@ -192,6 +192,9 @@ return Err(CommandError::InvalidRequirement);
 ```
 
 If your executor panics or otherwise fails at the WASM level, the server catches it and shows the sender a red `Wasm command failed with following error: ...`. Useful while developing, not something you want players to ever see.
+
+> [!WARNING]
+> A trap does more than fail that one command. The plugin's instance is left in a broken state, so every later call into it (other commands, event handlers, scheduled tasks, IPC from other plugins) fails with `Wasm plugin store failed during a guest call` and the original error. The plugin still shows as loaded, but it's dead until the server restarts or the plugin is reloaded. Other plugins keep working. A Rust `panic!` is the usual way to cause this by accident, so treat `unwrap()` in handlers with suspicion.
 
 ## Keep executors quick
 
@@ -275,8 +278,8 @@ struct WarpCommand {
 impl CommandHandler for WarpCommand {
   fn handle(&self, sender: CommandSender, _server: Server, args: ConsumedArgs) -> Result<i32, CommandError> {
     let Some(player) = sender.as_player() else {
-      let text = TextComponent::text("Only a player can warp.");
-      text.color_named(NamedColor::Red);
+      let text = TextComponent::text("Only a player can warp.")
+        .color_named(NamedColor::Red);
       sender.send_message(text);
       return Ok(1);
     };
@@ -286,8 +289,8 @@ impl CommandHandler for WarpCommand {
     let name = match args.get_value(NAME_ARG) {
       Arg::Simple(name) if !name.is_empty() => name,
       _ => {
-        let text = TextComponent::text("Usage: /warp <name>");
-        text.color_named(NamedColor::Red);
+        let text = TextComponent::text("Usage: /warp <name>")
+          .color_named(NamedColor::Red);
         sender.send_message(text);
         return Ok(1);
       }
@@ -296,16 +299,16 @@ impl CommandHandler for WarpCommand {
     let target = self.warps.0.read().unwrap().get(&name).copied();
 
     let Some(pos) = target else {
-      let text = TextComponent::text(&format!("There is no warp called '{name}'."));
-      text.color_named(NamedColor::Red);
+      let text = TextComponent::text(&format!("There is no warp called '{name}'."))
+        .color_named(NamedColor::Red);
       sender.send_message(text);
       return Ok(1);
     };
 
     player.teleport(pos, None, None, player.get_world());
 
-    let text = TextComponent::text(&format!("Warped to {name}."));
-    text.color_named(NamedColor::Green);
+    let text = TextComponent::text(&format!("Warped to {name}."))
+      .color_named(NamedColor::Green);
     sender.send_message(text);
 
     Ok(1)
@@ -313,9 +316,7 @@ impl CommandHandler for WarpCommand {
 }
 
 pub fn register(context: &Context, warps: Arc<Warps>) -> Result<()> {
-  let warp = Command::new(&["warp".to_string()], "Teleport to a warp point");
-
-  warp.then(
+  let warp = Command::new(&["warp".to_string()], "Teleport to a warp point").then(
     CommandNode::argument(NAME_ARG, &ArgumentType::String(StringType::SingleWord))
       .execute(WarpCommand { warps: Arc::clone(&warps) }),
   );

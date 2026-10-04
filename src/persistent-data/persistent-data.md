@@ -34,7 +34,7 @@ if let Some(charges) = item.get_int("my_plugin", "charges") {
 
 ## Checking & removing
 
-### `.has_custom_data(namespace, key)` / `.remove_custom_data(namespace, key)`
+### `.has_custom_data(namespace, key)` / `.remove_custom_data(namespace, key)` { data-since=0.1 }
 
 Check whether a key is set at all (useful for distinguishing "never set" from "set to a default-looking value"), or remove it entirely.
 

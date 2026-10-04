@@ -4,7 +4,7 @@ Forms are Bedrock Edition's client-native UI, simpler and more limited than a Ja
 
 ## Simple forms
 
-### `SimpleFormBuilder::new(title, content)` / `.button(text, image)` / `.build()`
+### `SimpleFormBuilder::new(title, content)` / `.button(text, image)` / `.build()` { data-since=0.1 }
 
 A title, a body message, and a list of buttons the player picks one of.
 
@@ -26,7 +26,7 @@ bedrock_player.open_form(form);
 
 ## Modal forms
 
-### `ModalFormBuilder::new(title, content)` / `.button1(text)` / `.button2(text)` / `.build()`
+### `ModalFormBuilder::new(title, content)` / `.button1(text)` / `.button2(text)` / `.build()` { data-since=0.1 }
 
 A yes/no or confirm/cancel style prompt, exactly two buttons. They default to localized "Yes"/"No" labels if you don't override them.
 
@@ -44,7 +44,7 @@ let form = ModalFormBuilder::new(
 
 ## Custom forms
 
-### `CustomFormBuilder::new(title)` / `.label(text)` / `.toggle(text, default)` / `.slider(text, min, max, step, default)` / `.step_slider(text, steps, default_index)` / `.dropdown(text, options, default_index)` / `.input(text, placeholder, default)` / `.build()`
+### `CustomFormBuilder::new(title)` / `.label(text)` / `.toggle(text, default)` / `.slider(text, min, max, step, default)` / `.step_slider(text, steps, default_index)` / `.dropdown(text, options, default_index)` / `.input(text, placeholder, default)` / `.build()` { data-since=0.1 }
 
 Actual structured input, chain as many elements as you need in display order.
 
@@ -60,7 +60,7 @@ let form = CustomFormBuilder::new(TextComponent::text("Character settings"))
 
 ## Showing one
 
-### `bedrock_player.open_form(form)`
+### `bedrock_player.open_form(form)` { data-since=0.1 }
 
 Returns a `u32` form id, hold onto it, it's how you'll match the response back to this specific form.
 

@@ -14,7 +14,7 @@ You rarely need to call these directly, everywhere a builder takes `impl Into<In
 
 ## Shaped recipes
 
-### `ShapedRecipeBuilder::new(id, output)`
+### `ShapedRecipeBuilder::new(id, output)` { data-since=0.1 }
 
 Builds a crafting-grid-shaped recipe (up to 3x3).
 
@@ -44,7 +44,7 @@ fn register_recipes(server: &Server) {
 
 ## Shapeless recipes
 
-### `ShapelessRecipeBuilder::new(id, output)`
+### `ShapelessRecipeBuilder::new(id, output)` { data-since=0.1 }
 
 Same idea, but order and position in the grid don't matter, just which ingredients are present.
 
@@ -62,7 +62,7 @@ manager.register(
 
 ## Cooking recipes
 
-### `CookingRecipeBuilder::smelting/blasting/smoking/campfire(id, ingredient, output)`
+### `CookingRecipeBuilder::smelting/blasting/smoking/campfire(id, ingredient, output)` { data-since=0.1 }
 
 One constructor per cooking station, each with a sensible default cooking time (200 ticks for smelting, 100 for blasting/smoking, 600 for campfire), overridable with `.cooking_time(ticks)`.
 
@@ -99,7 +99,7 @@ use pumpkin_plugin_api::{
   Context, ItemStack, Result,
 };
 
-fn on_load(&mut self, context: Context) -> Result<()> {
+fn on_load(&self, context: Context) -> Result<()> {
   context.register_shaped_recipe(
     ShapedRecipeBuilder::new("my_plugin:ruby_pickaxe", ItemStack::new("minecraft:diamond_pickaxe", 1))
       .pattern(["RRR", " S ", " S "])

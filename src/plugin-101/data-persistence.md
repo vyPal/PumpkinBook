@@ -8,12 +8,14 @@ use pumpkin_plugin_api::permissions;
 fn metadata(&self) -> PluginMetadata {
   PluginMetadata {
     // ...
-    permissions: vec![permissions::FS_READ_DATA.into(), permissions::FS_WRITE_DATA.into()],
+    permissions: vec![permissions::FS_WRITE_DATA.into()],
   }
 }
 ```
 
-Without both of those, `context.get_data_folder()` still returns a path, but any read or write against it will fail.
+`fs.write.data` includes reading, so a plugin that writes only needs that one. Without either permission, `context.get_data_folder()` still returns a path, but any read or write against it fails (with `No such file or directory`, since the folder simply isn't mounted into the sandbox).
+
+The string you get back is `data`, the folder's name *inside* the sandbox. The real folder is `plugins/data/<plugin name>` on the server, and the server creates it for you, but you can't see or use that path: the sandbox has no working directory and no other folders, so a relative path like `config.toml` fails too. Always build your paths from `get_data_folder()`.
 
 ## Example: a config file with serde and toml
 
@@ -56,7 +58,7 @@ fn load_config(data_dir: &str) -> Config {
   }
 }
 
-fn on_load(&mut self, context: Context) -> Result<()> {
+fn on_load(&self, context: Context) -> Result<()> {
   let config = load_config(&context.get_data_folder());
   // store `config` on your plugin struct so other handlers can use it
   Ok(())

@@ -9,7 +9,7 @@ The system behind that string is more interesting, and it has a couple of behavi
 
 ## Attaching a permission to a command
 
-### `context.register_command(command, permission)`
+### `context.register_command(command, permission)` { data-since=0.1 }
 
 ```rust
 context.register_command(command, "MyPlugin:warp");
@@ -27,7 +27,7 @@ The check runs **once, before any parsing**, against the name the player actuall
 
 ## Defining a node
 
-### `context.register_permission(permission)`
+### `context.register_permission(permission)` { data-since=0.1 }
 
 ```rust
 use pumpkin_plugin_api::permission::{Permission, PermissionDefault, PermissionLevel};
@@ -48,7 +48,7 @@ Permission MyPlugin:warp must use the plugin's namespace (myplugin)
 
 Registering the same node twice also fails, with `Permission <node> is already registered`. Since `register_permission` returns a `Result`, both of these will propagate out of your `on_load` and stop the plugin loading, which is generally what you want.
 
-### `default`
+### `default` { data-since=0.1 }
 
 Decides who has the node when nothing else says otherwise:
 
@@ -70,7 +70,7 @@ A plain player is level zero, so `Op(PermissionLevel::Zero)` is a slightly round
 
 Note that a player's op level is stored in `ops.json` and survives restarts, unlike the nodes themselves.
 
-### `children`
+### `children` { data-since=0.1 }
 
 A list of other nodes that this node implies, each with a `bool`. The entries are `PermissionChild` values, from the same `permission` module as everything else here:
 
@@ -198,8 +198,8 @@ impl CommandHandler for WarpCommand {
     // and a per-branch check is the only way to express that
     if let Arg::Players(targets) = args.get_value(TARGET) {
       if !sender.has_permission(&server, OTHERS_NODE) {
-        let text = TextComponent::text("You can only warp yourself.");
-        text.color_named(NamedColor::Red);
+        let text = TextComponent::text("You can only warp yourself.")
+          .color_named(NamedColor::Red);
         sender.send_message(text);
         return Ok(1);
       }
@@ -237,7 +237,7 @@ impl Plugin for WarpPlugin {
     }
   }
 
-  fn on_load(&mut self, context: Context) -> Result<()> {
+  fn on_load(&self, context: Context) -> Result<()> {
     // Everyone can warp themselves
     context.register_permission(&Permission {
       node: USE_NODE.into(),
@@ -254,9 +254,9 @@ impl Plugin for WarpPlugin {
       children: vec![],
     })?;
 
-    let mut warp = Command::new(&["warp".to_string()], "Teleport to a warp point");
-    warp.then(CommandNode::argument(TARGET, &ArgumentType::Players).execute(WarpCommand));
-    warp = warp.execute(WarpCommand);
+    let warp = Command::new(&["warp".to_string()], "Teleport to a warp point")
+      .then(CommandNode::argument(TARGET, &ArgumentType::Players).execute(WarpCommand))
+      .execute(WarpCommand);
 
     context.register_command(warp, USE_NODE);
 

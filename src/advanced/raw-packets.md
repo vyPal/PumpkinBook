@@ -4,21 +4,21 @@ An escape hatch for when nothing else in this book covers what you need: direct 
 
 ## Sending packets
 
-### `java_player.send_packet(packet)` / `bedrock_player.send_packet(packet)`
+### `java_player.send_packet(packet)` / `bedrock_player.send_packet(packet)` { data-since=0.1 }
 
 See [Java & Bedrock specifics](../players/java-and-bedrock-players.md). Each takes a fully-typed clientbound packet record from `java_packets`/`bedrock_packets`, hundreds of record types, one per packet, covering every phase of the protocol (login, configuration, play). Building one means matching the exact field layout the protocol expects, get it wrong and the client can desync or disconnect.
 
 ```rust
 use pumpkin_plugin_api::java_packets::{CKeepAlive, ClientboundPacket};
 
-java_player.send_packet(ClientboundPacket::CKeepAlive(CKeepAlive { keep_alive_id: 0 }));
+java_player.send_packet(&ClientboundPacket::CKeepAlive(CKeepAlive { keep_alive_id: 0 }));
 ```
 
 For plugin-to-mod or plugin-to-plugin communication over the wire (rather than the actual protocol), `java_player.send_custom_payload(channel, data)` is usually what you want instead, see [Java & Bedrock specifics](../players/java-and-bedrock-players.md#java-specific), it's a plain byte channel rather than a protocol packet.
 
 ## Reading and intercepting packets
 
-### `PacketReceivedEvent` / `PacketSentEvent`
+### `PacketReceivedEvent` / `PacketSentEvent` { data-since=0.1 }
 
 Two events (see [Event handlers](../plugin-101/event-handlers.md)) fire for every packet crossing the wire in either direction, carrying `player`, a structured `packet` (a `ServerboundPacket`/`ClientboundPacket` variant you can match on to read its fields), `packet_id`, `raw_payload` (the packet's raw bytes), and `cancelled`.
 
@@ -34,7 +34,7 @@ impl EventHandler<PacketReceivedEvent> for PacketLogger {
 ```
 
 > [!WARNING]
-> You can read the structured `packet` field and cancel the event, and you can overwrite `raw_payload` with your own bytes, that part works. What doesn't work is editing the structured `packet` field and having that change actually get sent, modifying a packet's typed fields and returning it currently panics on the host side ("Modifying packets from WASM is not yet supported"). If you need to change what gets sent, replace `raw_payload` with your own correctly-encoded bytes instead of mutating `packet`.
+> You can read the structured `packet` field, cancel the event, change `packet_id`, and overwrite `raw_payload` with your own bytes, those parts work, and the server sends or processes whatever ends up in `packet_id` and `raw_payload`. What doesn't work is editing the structured `packet` field: the host never reads it back, so the change is silently discarded and the original packet goes out. If you need to change what gets sent, replace `raw_payload` with your own correctly-encoded bytes instead of mutating `packet`. As with every event, only a [blocking handler](../plugin-101/event-handlers.md#blocking-vs-non-blocking) can make any change stick.
 
 ## Putting it together
 

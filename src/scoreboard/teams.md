@@ -4,7 +4,7 @@ Teams live on the same `Scoreboard` resource covered in [Scoreboards & objective
 
 ## Creating and settings
 
-### `TeamSettingsBuilder`
+### `TeamSettingsBuilder` { data-since=0.1 }
 
 Team appearance and behavior is one `TeamSettings` record (`display_name`, `friendly_fire`, `see_friendly_invisibles`, `nametag_visibility`, `collision_rule`, `color`, `prefix`, `suffix`), built with:
 
@@ -28,7 +28,7 @@ let settings = TeamSettingsBuilder::new()
 
 Defaults (if you skip a setting): friendly fire on, invisible teammates not visible, nametags always shown, always-collide, white, no prefix/suffix.
 
-### `scoreboard.register_new_team(name, settings)`
+### `scoreboard.register_new_team(name, settings)` { data-since=0.1 }
 
 Creates the team on the scoreboard and hands you back a `Team` handle for it in one call, `ScoreboardTeamExt`'s main entry point.
 
@@ -40,11 +40,11 @@ let red_team = scoreboard.register_new_team("red", settings);
 
 ## Looking teams up
 
-### `scoreboard.get_team_handle(name)` / `scoreboard.get_all_teams()` / `scoreboard.get_player_team_handle(player_name)`
+### `scoreboard.get_team_handle(name)` / `scoreboard.get_all_teams()` / `scoreboard.get_player_team_handle(player_name)` { data-since=0.1 }
 
 `get_team_handle` returns `None` if no team with that name exists, `get_all_teams` lists every `Team` on the scoreboard, `get_player_team_handle` finds whichever team a given player name currently belongs to.
 
-### `player.get_team_name()`
+### `player.get_team_name()` { data-since=0.1 }
 
 `PlayerTeamExt` adds this directly on `Player` (a friendlier name for the same `get_team` call from [Health, effects & stats](../players/player-status.md)), returning just the team name string rather than a full `Team` handle.
 
@@ -54,11 +54,11 @@ Every field on `TeamSettings` gets a matching getter/setter pair on `Team`, each
 
 If you need to change several fields at once, `.get_settings()` / `.update_settings(settings)` let you read the whole record, modify it, and write it back in one call instead of round-tripping per field.
 
-### `.get_players()` / `.add_player(player_name)` / `.remove_player(player_name)` / `.has_player(player_name)` / `.clear_players()`
+### `.get_players()` / `.add_player(player_name)` / `.remove_player(player_name)` / `.has_player(player_name)` / `.clear_players()` { data-since=0.1 }
 
 Membership, by plain name string (works for offline names too, same as scoreboard scores).
 
-### `.unregister()`
+### `.unregister()` { data-since=0.1 }
 
 Removes the team from the scoreboard entirely. Consumes the handle, since there's nothing left to point at afterward.
 

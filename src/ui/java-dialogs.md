@@ -32,7 +32,7 @@ java_player.show_dialog(dialog);
 `inputs` takes a list of `DialogInput` variants: `Bool(DialogInputBool { label, default_value })` for a checkbox, `Text(DialogInputText { label, placeholder, default_value })` for a text field, `NumberRange(DialogInputNumberRange { label, min_value, max_value, initial_value, step, label_format })` for a slider, `SingleOption(DialogInputSingleOption { label, options, initial_index })` for a multiple-choice picker.
 
 > [!NOTE]
-> The WIT contract declares these input types, but unlike forms, there's currently no documented event that returns a dialog's submitted input values back to the plugin, only button clicks (via `Action::CustomClick`, below) are wired up to an event. Treat inputs as reflecting real client-side dialog capability that may not be fully round-trippable to your plugin yet.
+> The WIT contract declares these input types, but unlike forms, there's currently no documented event that returns a dialog's submitted input values back to the plugin, only button clicks (via `Action::CustomClick`, below) are wired up to an event. The click event carries an optional `payload`, raw bytes forwarded from the client, but this book hasn't verified that it contains the input values, so don't build on it without testing. Treat inputs as reflecting real client-side dialog capability that may not be fully round-trippable to your plugin yet.
 
 ## Buttons & custom actions
 
@@ -86,7 +86,10 @@ impl EventHandler<DialogClickActionEvent> for MenuHandler {
 ```
 
 > [!NOTE]
-> This event was renamed from `CustomClickActionEvent` in earlier versions of this crate. Two more dialog events exist alongside it: `DialogShowEvent` (`player`, `dialog`, `cancelled`), fired whenever a dialog is about to be shown to a player (cancel it to suppress the dialog), and `DialogClearEvent` (`player`, `cancelled`), fired when a dialog is cleared.
+> This event was renamed from `CustomClickActionEvent` in earlier versions of this crate. Two more dialog events are declared alongside it, `DialogShowEvent` (`player`, `dialog`, `cancelled`, meant to fire when a dialog is about to be shown) and `DialogClearEvent` (`player`, `cancelled`, meant to fire when a dialog is cleared).
+
+> [!WARNING]
+> Those two never fire. You can register handlers for them, but nothing in the server creates either event, so a handler for `DialogShowEvent` can't be used to suppress a dialog. Only `DialogClickActionEvent` is wired up. See the [Event reference](../advanced/event-reference.md#dialog-events).
 
 ## Links
 
