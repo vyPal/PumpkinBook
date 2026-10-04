@@ -1,0 +1,44 @@
+/* API version tags: a heading carrying data-since is documenting a versioned API item.
+   One extra badge at most: data-status=unimplemented, or the lifecycle attributes
+   (changed < deprecated < removed, the most severe wins). See CONTRIBUTING.md. */
+:is(h1, h2, h3, h4)[data-since] {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.2rem 0.5rem;
+}
+:is(h1, h2, h3, h4)[data-since] > a.header {
+    margin-right: auto;
+}
+:is(h1, h2, h3, h4)[data-since]::before,
+:is(h1, h2, h3, h4)[data-since]::after {
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: 0.02em;
+    padding: 0.28rem 0.55rem;
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, currentColor 22%, transparent);
+    background: color-mix(in srgb, currentColor 7%, transparent);
+    white-space: nowrap;
+}
+:is(h1, h2, h3, h4)[data-since]::after {
+    order: 2;
+    content: "since v" attr(data-since);
+    opacity: 0.75;
+}
+:is(h1, h2, h3, h4)[data-status]::before,
+:is(h1, h2, h3, h4)[data-changed]::before,
+:is(h1, h2, h3, h4)[data-deprecated]::before,
+:is(h1, h2, h3, h4)[data-removed]::before {
+    order: 1;
+    --tag: #2563eb;
+    color: color-mix(in srgb, var(--tag) 62%, var(--fg));
+    border-color: color-mix(in srgb, var(--tag) 45%, transparent);
+    background: color-mix(in srgb, var(--tag) 12%, transparent);
+}
+:is(h1, h2, h3, h4)[data-status="unimplemented"]::before { content: "not implemented yet"; --tag: #d97706; }
+:is(h1, h2, h3, h4)[data-changed]::before { content: "changed in v" attr(data-changed); }
+:is(h1, h2, h3, h4)[data-deprecated]::before { content: "deprecated in v" attr(data-deprecated); --tag: #d97706; }
+:is(h1, h2, h3, h4)[data-removed]::before { content: "removed in v" attr(data-removed); --tag: #dc2626; }
+:is(h1, h2, h3, h4)[data-removed] > a.header { opacity: 0.6; }

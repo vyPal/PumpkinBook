@@ -8,6 +8,7 @@ description = "A general Knowledge base for plugins built for the Pumpkin Minecr
 edition = "2024"
 
 [output.html]
+additional-css = ["assets/api-tags.css"]
 git-repository-url = "https://github.com/vyPal/PumpkinBook"
 git-repository-icon = "fab-github"
 
