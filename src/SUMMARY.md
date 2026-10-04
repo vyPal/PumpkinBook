@@ -1,10 +1,13 @@
 [Introduction](./introduction.md)
+[Plugin API versions](./api-versions.md)
+[API changelog](./changelog.md)
 
 # Pumpkin Plugin 101
 
 - [Creating a new plugin](./plugin-101/creating-plugin.md)
 - [Basic plugin logic](./plugin-101/plugin-logic.md)
 - [Plugin permissions](./plugin-101/plugin-permissions.md)
+- [Plugin loading & server configuration](./plugin-101/plugin-configuration.md)
 - [Event handlers](./plugin-101/event-handlers.md)
 - [Command executors](./plugin-101/command-executors.md)
 - [Data persistence](./plugin-101/data-persistence.md)
@@ -77,6 +80,7 @@
 # Advanced
 
 - [Vanilla data reference](./advanced/vanilla-data-reference.md)
+- [Event reference](./advanced/event-reference.md)
 - [Raw packets](./advanced/raw-packets.md)
 
 # Code snippets
