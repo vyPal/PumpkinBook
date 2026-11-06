@@ -94,7 +94,7 @@ Read the section on [how a check resolves](#how-a-check-actually-resolves) befor
 
 Not every sender goes through the same path.
 
-- **Console and RCON always pass.** Unconditionally, before any node lookup happens. They're treated as permission level four and every check returns true, whether or not the node exists.
+- **The console always passes.** Unconditionally, before any node lookup happens. It's treated as permission level four and every check returns true, whether or not the node exists. (RCON used to get the same treatment, but the server dropped RCON in October 2026, see [Finding out who it is](./executors.md#finding-out-who-it-is).)
 - **Command blocks and dummy senders** are treated as level two, and only ever consult the node's registered default. Explicit grants and wildcards don't apply to them.
 - **Players** go through the full resolution below.
 
@@ -123,7 +123,7 @@ For a player, the server works through these in order and **returns on the first
 
 ### Unregistered nodes
 
-Step four is where the surprise lives. A node that was never registered denies every player, including a level four operator, and denies command blocks. But console and RCON never got that far, because they passed at the very first step.
+Step four is where the surprise lives. A node that was never registered denies every player, including a level four operator, and denies command blocks. But the console never got that far, because it passed at the very first step.
 
 > [!WARNING]
 > If you forget `register_permission`, your command doesn't look broken. It looks **console-only**. It works perfectly when you test it from the server terminal and silently refuses for every single player, operator or not, with no error in the log explaining why. If a command of yours behaves like that, this is almost certainly the reason.

@@ -20,6 +20,9 @@ let menu = Gui::new(Screen::Generic9x3, TextComponent::text("Shop"));
 
 Places or reads an `ItemStack` in a slot (indexed left-to-right, top-to-bottom, `0`-based), or empties every slot at once. `.get_size()` tells you how many slots the current `Screen` type actually has, so you don't hardcode a slot count that only matches one layout.
 
+> [!NOTE]
+> Before 2026-10-21, several layouts reported the wrong size (`Generic9x1` had only 5 slots, and every layout not in a short list fell back to 27), the player's own inventory rows were missing from the screen, and inventory writes from a plugin could land in the wrong client slot or not show up in an open GUI. All of that is fixed on current servers. If you support older ones, check `get_size()` rather than trusting the layout name.
+
 ```rust
 use pumpkin_plugin_api::ItemStack;
 

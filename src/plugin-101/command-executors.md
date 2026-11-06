@@ -33,7 +33,7 @@ impl CommandHandler for HelloCommand {
 }
 ```
 
-`sender` is whoever ran the command (a player, the console, a command block, or RCON), `args` gives you access to any arguments the command tree consumed. Since our command doesn't declare any arguments yet, `args` is unused here, see [Command executors](../commands/executors.md#reading-arguments) for how to read them once you have some.
+`sender` is whoever ran the command (a player, the console, or a command block), `args` gives you access to any arguments the command tree consumed. Since our command doesn't declare any arguments yet, `args` is unused here, see [Command executors](../commands/executors.md#reading-arguments) for how to read them once you have some.
 
 `execute()` attaches the handler and returns the command again, so it chains naturally:
 

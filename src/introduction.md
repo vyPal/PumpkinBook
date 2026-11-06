@@ -10,10 +10,10 @@ For a list of supported languages and basic instructions on how to get started w
 
 Since the plugin API is under active development, every claim in this book is checked directly against the source rather than assumed, see the [Pumpkin](https://github.com/Pumpkin-MC/Pumpkin) repository. The plugin WIT lives in its `crates/pumpkin-plugin-wit` folder and is mirrored to its own [pumpkin-plugin-wit](https://github.com/Pumpkin-MC/pumpkin-plugin-wit) repository on every push. This book was last brought up to date against:
 
-- `Pumpkin` (main repo): [`8adc29feb`](https://github.com/Pumpkin-MC/Pumpkin/commit/8adc29feb5e30a29934ef1deb8030d5d822c9b7e) (2026-10-04)
-- `pumpkin-plugin-wit` (mirror): [`de0cfdb`](https://github.com/Pumpkin-MC/pumpkin-plugin-wit/commit/de0cfdb) (2026-10-04)
+- `Pumpkin` (main repo): [`6361843f5`](https://github.com/Pumpkin-MC/Pumpkin/commit/6361843f5d9029b0cf7ecd6b1f2e86ace1256934) (2026-11-05)
+- `pumpkin-plugin-wit` (mirror): [`51dbdc7`](https://github.com/Pumpkin-MC/pumpkin-plugin-wit/commit/51dbdc7574ee1e362975e852f54b6e8a2f779a5a) (2026-11-02)
 
-The previous checkpoint, for reference, was `Pumpkin` [`c7d4c08d9`](https://github.com/Pumpkin-MC/Pumpkin/commit/c7d4c08d9d740b79cad7a435849832022a3bf4a6) (2026-09-03) / `pumpkin-plugin-wit` [`f481f5677`](https://github.com/Pumpkin-MC/pumpkin-plugin-wit/commit/f481f5677dd0c36788288378b7b1f650ed2266e9) (2026-08-29). If you're reading this well after the date above, treat anything not covered here as unverified, and check the source directly, `git diff` between the pinned commit and current `master` is the fastest way to see what moved. What changed in the WIT between checkpoints is summarized in the [API changelog](./changelog.md), and which of the two plugin API versions to build against is explained on [Plugin API versions](./api-versions.md).
+The previous checkpoint, for reference, was `Pumpkin` [`8adc29feb`](https://github.com/Pumpkin-MC/Pumpkin/commit/8adc29feb5e30a29934ef1deb8030d5d822c9b7e) (2026-10-04) / `pumpkin-plugin-wit` [`de0cfdb`](https://github.com/Pumpkin-MC/pumpkin-plugin-wit/commit/de0cfdb) (2026-10-04). If you're reading this well after the date above, treat anything not covered here as unverified, and check the source directly, `git diff` between the pinned commit and current `master` is the fastest way to see what moved. What changed in the WIT between checkpoints is summarized in the [API changelog](./changelog.md), and which of the two plugin API versions to build against is explained on [Plugin API versions](./api-versions.md).
 
 ## Contributing
 

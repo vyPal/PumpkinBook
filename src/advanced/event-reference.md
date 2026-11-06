@@ -9,7 +9,7 @@ Fired is worked out by searching the server for code that constructs each event,
 
 All names are the Rust marker types from `pumpkin_plugin_api::events`. The WIT spells them in kebab case (`player-join-event`), and its data records carry a `-data` suffix.
 
-In numbers: 273 events, 215 fired somewhere, 58 never fired, 246 cancellable.
+In numbers: 273 events, 217 fired somewhere, 56 never fired, 246 cancellable.
 
 
 ## Player events
@@ -150,7 +150,7 @@ In numbers: 273 events, 215 fired somewhere, 58 never fired, 246 cancellable.
 
 ## Entity events
 
-77 events, 28 never fired.
+77 events, 26 never fired.
 
 | Event | Cancellable | Fired |
 |---|---|---|
@@ -208,13 +208,13 @@ In numbers: 273 events, 215 fired somewhere, 58 never fired, 246 cancellable.
 | `ExplosionPrimeEvent` | yes | yes |
 | `FireworkExplodeEvent` | yes | yes |
 | `FoodLevelChangeEvent` | yes | yes |
-| `HorseJumpEvent` | yes | **no** |
+| `HorseJumpEvent` | yes | yes |
 | `ItemDespawnEvent` | yes | yes |
 | `ItemMergeEvent` | yes | yes |
 | `ItemSpawnEvent` | yes | yes |
 | `LingeringPotionSplashEvent` | yes | yes |
 | `PigZapEvent` | yes | **no** |
-| `PigZombieAngerEvent` | yes | **no** |
+| `PigZombieAngerEvent` | yes | yes |
 | `PiglinBarterEvent` | yes | yes |
 | `PlayerDeathEvent` | yes | yes |
 | `PotionSplashEvent` | yes | yes |

@@ -236,7 +236,7 @@ This method must also return the received `event` object. The data in the `event
 
 ### `handle_command(command_id, sender, server, args) -> result<s32>` { data-since=0.1 }
 
-This handler is similar to the event handler but has some additional arguments, namely the command sender (variant/enum representing either a player, the console, command block, or RCON) and the command arguments (structure/class that exposes a `.get_value(key) -> arg` method to fetch the values of the arguments that were used when running the command).
+This handler is similar to the event handler but has some additional arguments, namely the command sender (variant/enum representing either a player, the console, or a command block) and the command arguments (structure/class that exposes a `.get_value(key) -> arg` method to fetch the values of the arguments that were used when running the command).
 
 One thing to keep in mind is that the `command_id` again corresponds to the id that the plugin used to register **the executor for the specific branch** of the command tree. The command tree of a specific command can have several executors at different parts of the tree, each needs it's own unique id. And like with the event handler, the plugin is responsible for tracking these ids and routing data to the proper internal handler for the command.
 

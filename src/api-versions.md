@@ -6,21 +6,21 @@ Everything a plugin can ask of the server is defined by one contract, the WIT pa
 
 | Version | Status | Rust SDK | In short |
 |---|---|---|---|
-| **v0.1** | Stable, frozen since 2026-09-29 | `pumpkin-plugin-api` | The API this whole book documents. Its WIT no longer changes. |
-| **v0.2** | In development, branched 2026-09-29 | none yet | A copy of v0.1 plus GameTest. This is where future breaking changes go. |
+| **v0.1** | Stable, officially frozen | `pumpkin-plugin-api` | The API this whole book documents. Its WIT no longer changes. |
+| **v0.2** | In development, branched 2026-09-29 | none yet | An async rework of v0.1 with more API. Not loaded by a default server build. This is where future breaking changes go. |
 
 > [!NOTE]
-> The version of the **`pumpkin-plugin-api` crate** is not the API version. The crate's version follows the server's (`0.2.0+26.3-26.51` at the time of writing), while the API it implements is still **v0.1**. If a tool asks you which plugin API version you target, the answer for any Rust plugin is v0.1.
+> The version of the **`pumpkin-plugin-api` crate** is not the API version. The crate's version follows the server's (`0.2.1+26.3-26.60` at the time of writing), while the API it implements is still **v0.1**. If a tool asks you which plugin API version you target, the answer for any Rust plugin is v0.1.
 
 ## What "frozen" means
 
-When v0.2 was branched off (pull request #3766, 2026-09-29), the description said that "v0.1 is kept for stability and backwards compatibility while we make future breaking changes to v0.2 instead". Nothing in the v0.1 WIT has changed since the day of the branch, and everything new lands in the `v0.2` folder. In practice:
+When v0.2 was branched off (pull request #3766, 2026-09-29), the description said that "v0.1 is kept for stability and backwards compatibility while we make future breaking changes to v0.2 instead". In practice the freeze took a few more weeks to stick. v0.1 still changed on 2026-10-06 (the block burn event gained two fields), 2026-10-07 (packet records switched to `nbt-tree`) and 2026-10-11 (one packet field changed type), and a Bedrock packet change landed in v0.1 on 2026-10-29 and was reverted two days later. The [API changelog](./changelog.md) has the details. Since 2026-10-16 the v0.1 WIT is no longer generated from the server's code at all, and v0.1 is now officially frozen: everything new lands in the `v0.2` folder. In practice:
 
 - A plugin built against the final v0.1 should keep loading on future servers for as long as they keep shipping the v0.1 host. The server's bug fixes still go into that host, but the contract stays as it is.
 - Fixes to behavior, like the ones in the [API changelog](./changelog.md#server-and-sdk-changes-outside-the-wit), do not make a v0.1 plugin stale.
 
 > [!WARNING]
-> Frozen only counts from 2026-09-29. v0.1 changed several times in the weeks before, and the WIT type check is structural: a plugin whose idea of a type differs from the server's, even by one new field in one event record, is rejected at load time with an error starting `Plugin was built against a different iteration of the API`. Because every plugin's `handle-event` export mentions the full `event` type, a change to *any* event record breaks *every* plugin built earlier. **Rebuild anything compiled before 2026-09-29** against the final v0.1.
+> The final v0.1 is the one from 2026-10-11 onwards (with the exception of plugins built between 2026-10-29 and 2026-10-31, see above). The WIT type check is structural: a plugin whose idea of a type differs from the server's, even by one new field in one event record, is rejected at load time with an error starting `Plugin was built against a different iteration of the API`. Because every plugin's `handle-event` export mentions the full `event` type, and that type includes every packet record through the packet events, a change to *any* event or packet record breaks *every* plugin built earlier. **Rebuild anything compiled before 2026-10-11** against the final v0.1.
 
 ## How the server picks a version
 
@@ -28,15 +28,16 @@ The server reads the version from the plugin itself: the first export named `pum
 
 - `0.1.x` loads as v0.1, `0.2.x` loads as v0.2. The patch number is ignored. (A plugin built against the WIT stamped `0.2.7` loaded without trouble.)
 - Any other version is refused with `Plugin is built against an unsupported version of the API: 0.3.0`.
+- Since 2026-10-14, the v0.2 host is only compiled into the server with the `plugin-v0_2` Cargo feature, which is off by default ("off until the v0.2 ABI is finished"). On a normal build, a v0.2 plugin is refused with `Plugin is built against an unsupported version of the API: 0.2.0 (this server was built without the `plugin-v0_2` feature)`. To try v0.2 you need a server built with `cargo build -p pumpkin --features plugin-v0_2`.
 - A component without that export isn't treated as a plugin at all: `Could not identify the plugin API version`.
 
-Each version has its own host implementation and its own set of interfaces offered to the plugin, so a v0.1 plugin never sees anything of v0.2.
+Each version has its own host implementation and its own set of interfaces offered to the plugin, so a v0.1 plugin never sees anything of v0.2. Since 2026-10-22 each version also runs on its own Wasm engine. v0.1 plugins get a sequential one, without the component model's async support, so a v0.1 plugin can only use **WASI 0.2**. One that imports anything from WASI 0.3 is refused with `Plugin API 0.1 supports WASI 0.2 only, but the plugin imports ...`. The `wasm32-wasip2` target only produces WASI 0.2 imports, so this only matters if you assemble the component by hand or with another toolchain.
 
 ## Can a plugin mix versions?
 
 No. One plugin is one version, from its metadata export to every interface it imports. The server only offers a plugin the interfaces of its own version, so a component that imports something from the other version can't be instantiated and is rejected with the same `different iteration of the API` error. There's no way to use a v0.2 interface from a v0.1 plugin, or the other way round.
 
-What **does** work is running plugins of different versions on the same server. They share the same commands, permissions and events, and they can talk to each other: in a test, a v0.1 plugin and a v0.2 plugin loaded side by side and exchanged [IPC messages](./ipc/inter-plugin-communication.md) in both directions, since the payload is plain bytes. So a v0.2 plugin can depend on a v0.1 plugin's IPC protocol (or the reverse) without either one noticing.
+What **does** work is running plugins of different versions on the same server, provided the server was built with the `plugin-v0_2` feature. They share the same commands, permissions and events, and they can talk to each other: in a test, a v0.1 plugin and a v0.2 plugin loaded side by side and exchanged [IPC messages](./ipc/inter-plugin-communication.md) in both directions, since the payload is plain bytes. So a v0.2 plugin can depend on a v0.1 plugin's IPC protocol (or the reverse) without either one noticing.
 
 ## Which version should you target?
 
@@ -46,11 +47,15 @@ What **does** work is running plugins of different versions on the same server. 
 
 ## What v0.2 has that v0.1 doesn't
 
-As of 2026-10-04, only one thing: **GameTest**, an interface for registering automated in-game tests (`gametest`) together with an export the server calls back into (`gametest-callbacks`). The host side is not implemented yet. Every GameTest call currently fails with a "not implemented" error, and a failing host call kills the plugin that made it (see [Returning from an executor](./commands/executors.md#returning-from-an-executor)), so there's nothing to build on yet, and it isn't covered further in this book.
+As of 2026-11-06, v0.2 has moved well past "a copy of v0.1". None of it is usable from Rust yet, since `pumpkin-plugin-api` only implements v0.1, and none of it loads on a default server build, so this book doesn't cover it beyond this list:
 
-One consequence is already visible: `gametest-callbacks` is part of the v0.2 plugin world, so *every* v0.2 plugin has to export it, whether it uses GameTest or not. It also contains an `async` function, so a toolchain targeting v0.2 needs component-model async support. A v0.2 plugin that leaves it out won't load (and in Rust won't even compile).
+- **An async ABI.** Nearly every plugin export (`on-load`, `handle-event`, `handle-command`, `handle-task`, `handle-ipc-message` and the rest) is an `async func`, and so are the host calls that may wait on the server, like `send-ipc-message` and most inventory writes. A toolchain targeting v0.2 needs component-model async support.
+- **More API.** Inventory and item stack helpers (`add-item`, `contains-at-least`, `give-item`, damage and repair cost, and so on), more player methods (`perform-command`, `chat`, sneaking and sprinting, `close-inventory`, post effects), and more world methods (`break-block`, `drop-item-naturally`, entity lookup by id, UUID or box).
+- **Event changes.** A new `entity-toggle-sit-event`, a `reason` on the entity target event, and `experience` on the breed event.
+- **Packet changes.** Bedrock 1.26.60 packets, and signed-byte fields typed correctly as `s8`.
+- **GameTest**, an interface for registering automated in-game tests (`gametest`) together with an export the server calls back into (`gametest-callbacks`). Its host side is still not implemented: every GameTest call fails with a "not implemented" error. Because `gametest-callbacks` is part of the v0.2 plugin world, every v0.2 plugin has to export it, whether it uses GameTest or not.
 
-Everything else in v0.2 is currently identical to v0.1, down to the last line.
+The [API changelog](./changelog.md#v02-in-development) lists each change.
 
 ## How this book marks versions
 
@@ -60,4 +65,4 @@ Every API item in this book that has its own heading carries a small badge on th
 - **since v0.2** marks something that only exists from v0.2 on.
 - **changed in vX**, **deprecated in vX** and **removed in vX** appear next to it when a later version altered, deprecated or removed the item. The text under such a heading says what differs between versions.
 
-Today almost every badge says *since v0.1*, because v0.2 hasn't diverged yet. The badges are there so that the book doesn't have to be restructured the day it does. Pages that are written for a single version will be called out at the top, and a bigger redesign gets its own migration page. The running list of what changed, commit by commit, is the [API changelog](./changelog.md).
+Today every badge says *since v0.1*. v0.2 has diverged, but there's no SDK for it yet, so the book doesn't document it. The badges are there so that the book doesn't have to be restructured once it does. Pages that are written for a single version will be called out at the top, and a bigger redesign gets its own migration page. The running list of what changed, commit by commit, is the [API changelog](./changelog.md).

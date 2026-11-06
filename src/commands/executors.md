@@ -122,7 +122,11 @@ if let Some(player) = sender.as_player() {
 
 - `as_player()` returns `Option<Player>`, and is the one you'll reach for most.
 - `is_player()` and `is_console()` are quick boolean checks.
-- `get_command_sender_type()` gives you the full picture as an enum: a player, the console, RCON, a command block (along with the world it's in), or a dummy sender.
+- `get_command_sender_type()` gives you the full picture as an enum: a player, the console, a command block (along with the world it's in), or a dummy sender.
+
+> [!NOTE]
+> The enum still has an `Rcon` case, but nothing produces it anymore. The server replaced RCON with the Minecraft server management protocol in October 2026, and that protocol doesn't run commands. A `match` arm for `Rcon` is harmless, just dead code. `is_console()` used to be true for RCON senders as well.
+
 - `get_name()` works for all of them.
 
 ### Talking back
